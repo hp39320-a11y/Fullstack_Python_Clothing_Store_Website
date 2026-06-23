@@ -138,3 +138,33 @@ The local SQLite database (`db.sqlite3`) contains pre-configured categories, pro
     *   **Username**: `admin`
     *   **Password**: `admin123`
 *   **Admin Dashboard URL**: [http://127.0.0.1:8001/admin-panel/login/](http://127.0.0.1:8001/admin-panel/login/)
+
+---
+
+## ☁️ Render Deployment Guide
+
+Follow these steps to deploy this Django application successfully on **Render**:
+
+### 1. Create a Web Service
+On your Render Dashboard, click **New +** and select **Web Service** (do *not* select Static Site). Link it to your GitHub repository `Fullstack_Python_Clothing_Store_Website`.
+
+### 2. Configure Service Settings
+- **Environment**: `Python`
+- **Branch**: `master`
+- **Build Command**:
+  ```bash
+  pip install -r requirements.txt && python storeproject/manage.py collectstatic --noinput && python storeproject/manage.py migrate
+  ```
+- **Start Command**:
+  ```bash
+  gunicorn --chdir storeproject storeproject.wsgi:application
+  ```
+
+### 3. Add Environment Variables
+Under the **Environment** tab of your Render Web Service, add the following variables:
+- `SECRET_KEY`: *[Insert a secure random string]*
+- `DEBUG`: `False`
+- `ALLOWED_HOSTS`: `fullstack-python-clothing-store-website.onrender.com`
+- `RAZORPAY_KEY_ID`: *[Your Razorpay Test Key]*
+- `RAZORPAY_KEY_SECRET`: *[Your Razorpay Test Secret]*
+
