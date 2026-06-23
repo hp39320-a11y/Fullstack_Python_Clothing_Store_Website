@@ -33,9 +33,10 @@ document.addEventListener("click", function(e){
     // ==========================
     // 🛒 ADD TO CART
     // ==========================
-    if(e.target.classList.contains("add-to-cart-btn")){
-
-        const productId = e.target.dataset.id;
+    const cartBtn = e.target.closest(".add-to-cart-btn");
+    if(cartBtn){
+        e.preventDefault();
+        const productId = cartBtn.dataset.id;
 
         fetch(`/cart/add/${productId}/`, {
             method: "POST",
@@ -45,10 +46,27 @@ document.addEventListener("click", function(e){
         })
         .then(res => {
             if (res.ok) {
-                showToast("Item added to cart 🛒");
+                showToast("Item added to cart 🛒", "success");
+                
+                // Dynamically update Cart Badge count
+                const cartBadge = document.getElementById("cart-badge");
+                if (cartBadge) {
+                    let count = parseInt(cartBadge.innerText) || 0;
+                    count += 1;
+                    cartBadge.innerText = count;
+                    cartBadge.style.display = "inline-flex"; // ensure visible
+
+                    // Trigger badge animation pop
+                    cartBadge.style.animation = 'none';
+                    cartBadge.offsetHeight; /* trigger reflow */
+                    cartBadge.style.animation = null;
+                }
             } else {
                 showToast("Error adding to cart", "error");
             }
+        })
+        .catch(err => {
+            showToast("Error adding to cart", "error");
         });
     }
 
@@ -57,9 +75,8 @@ document.addEventListener("click", function(e){
     // ❤️ WISHLIST (BUTTON + ICON)
     // ==========================
     const wishBtn = e.target.closest(".wishlist-btn, .wishlist-icon");
-
     if(wishBtn){
-
+        e.preventDefault();
         const productId = wishBtn.dataset.id;
 
         fetch(`/wishlist/add/${productId}/`, {
@@ -70,29 +87,38 @@ document.addEventListener("click", function(e){
         })
         .then(res => {
             if (res.ok) {
-                showToast("Added to wishlist ❤️");
+                showToast("Added to wishlist ❤️", "wishlist");
+                
+                // Add filled class/style if desired
+                const svg = wishBtn.querySelector("svg");
+                if (svg) {
+                    svg.setAttribute("fill", "currentColor");
+                }
             } else {
                 showToast("Error adding to wishlist", "error");
             }
+        })
+        .catch(err => {
+            showToast("Error adding to wishlist", "error");
         });
     }
 
 
     // ==========================
-    // ❌ OPEN CANCEL MODAL (FIXED)
+    // ❌ OPEN CANCEL MODAL
     // ==========================
     const cancelBtn = e.target.closest(".open-cancel-modal");
-
     if(cancelBtn){
-
         e.preventDefault();
-
         const url = cancelBtn.getAttribute("data-url");
-
         const modal = document.getElementById("cancelModal");
-        modal.classList.add("show");
-
-        document.getElementById("confirmCancelBtn").href = url;
+        if (modal) {
+            modal.classList.add("show");
+        }
+        const confirmBtn = document.getElementById("confirmCancelBtn");
+        if (confirmBtn) {
+            confirmBtn.href = url;
+        }
     }
 
 
@@ -122,7 +148,6 @@ function closeModal(){
 // ==============================
 window.addEventListener("click", function(e){
     const modal = document.getElementById("cancelModal");
-
     if(e.target === modal){
         modal.classList.remove("show");
     }
@@ -133,11 +158,9 @@ window.addEventListener("click", function(e){
 // 📏 SIZE SELECT
 // ==============================
 function selectSize(btn){
-
     document.querySelectorAll(".size-btn").forEach(b => {
         b.classList.remove("active");
     });
-
     btn.classList.add("active");
 
     const input = document.getElementById("selected-size");
@@ -151,15 +174,11 @@ function selectSize(btn){
 // 🎉 CANCEL SUCCESS POPUP
 // ==============================
 window.addEventListener("load", function(){
-
     const successBox = document.getElementById("cancelSuccess");
-
     if(successBox){
         successBox.style.display = "flex";
-
         setTimeout(() => {
             successBox.style.display = "none";
         }, 2500);
     }
-
 });

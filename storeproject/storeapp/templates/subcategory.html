@@ -1,55 +1,86 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/subcategory.css' %}">
-{% endblock %}
-
-{% block title %}Products in {{ subcategory.name }} | Clothing{% endblock %}
+{% block title %}{{ subcategory.name }} Collection | UrbanWear{% endblock %}
 
 {% block content %}
-<h2>{{ subcategory.name }} Collection</h2>
 
-<div class="product-list">
-    {% if products %}
-        {% for product in products %}
-        <div class="product">
-
-            <!-- ❤️ Wishlist -->
-            <button class="wishlist-btn" data-id="{{ product.id }}">
-                ❤️
-            </button>
-
-            <!-- IMAGE -->
-            <a href="{% url 'product_detail' product.id %}">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                {% else %}
-                    <img src="https://via.placeholder.com/300x200">
-                {% endif %}
-            </a>
-
-            <!-- NAME -->
-            <p class="product-name">
-                <a href="{% url 'product_detail' product.id %}">
-                    {{ product.name }}
-                </a>
-            </p>
-
-            <!-- PRICE -->
-            <p class="product-price">₹{{ product.price }}</p>
-
-            {% if product.stock > 0 %}
-            <div class="product-actions">
-            </div>
-            {% else %}
-                <p class="out">Out of stock</p>
-            {% endif %}
-
-        </div>
-        {% endfor %}
-    {% else %}
-        <p class="no-product">No products available</p>
-    {% endif %}
+<div class="page-hero">
+  <span class="section-label">{{ subcategory.category.name }}</span>
+  <h1>{{ subcategory.name }} Collection</h1>
+  <p>{{ products|length }} styles available in this category</p>
 </div>
+
+<div class="section">
+  <div class="products-grid">
+    {% for product in products %}
+    <div class="product-card" id="sub-product-{{ product.id }}">
+
+      <div class="pc-img-wrap">
+        <a href="{% url 'product_detail' product.id %}">
+          {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+          {% else %}
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:60px;color:var(--text-tertiary)">👗</div>
+          {% endif %}
+        </a>
+
+        {% if product.stock == 0 %}
+        <span class="pc-badge" style="background:var(--text-tertiary)">Sold Out</span>
+        {% elif product.stock <= 5 %}
+        <span class="pc-badge pc-badge-low">Only {{ product.stock }} Left!</span>
+        {% else %}
+        <span class="pc-badge pc-badge-new">New</span>
+        {% endif %}
+
+        <button class="pc-wishlist wishlist-icon" data-id="{{ product.id }}" id="sub-wish-{{ product.id }}" title="Save to Wishlist" style="border:none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+
+        {% if product.stock > 0 %}
+        <div class="pc-quick-actions">
+          <button class="btn btn-white btn-sm add-to-cart-btn" data-id="{{ product.id }}" id="sub-qcart-{{ product.id }}" style="flex:1;justify-content:center;font-size:12px">
+            Add to Cart
+          </button>
+          <a href="{% url 'product_detail' product.id %}" class="btn btn-dark btn-sm" style="flex:1;justify-content:center;font-size:12px">
+            Buy Now
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="pc-body">
+        <div class="pc-brand">{{ product.category.name }}</div>
+        <div class="pc-name">{{ product.name }}</div>
+        <div class="pc-price-row">
+          <span class="pc-price">₹{{ product.price }}</span>
+        </div>
+        {% if product.sizes %}
+        <div class="pc-sizes">
+          {% for s in product.sizes.split %}
+          <span class="pc-size-dot">{{ s|cut:"," }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% if product.stock == 0 %}
+        <div style="font-size:12px;color:var(--text-secondary);padding:8px 0;border-top:1px solid var(--border-light);text-align:center">Out of Stock</div>
+        {% else %}
+        <div class="pc-actions">
+          <button class="btn btn-ghost btn-sm add-to-cart-btn" data-id="{{ product.id }}" id="sub-cart-{{ product.id }}" style="justify-content:center">🛒 Cart</button>
+          <a href="{% url 'product_detail' product.id %}" class="btn btn-accent btn-sm" style="justify-content:center">Buy Now</a>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+    {% empty %}
+    <div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-secondary)">
+      <div style="font-size:56px;margin-bottom:20px">🛍️</div>
+      <p>No products yet in this collection.</p>
+      <a href="{% url 'shop' %}" class="btn btn-dark" style="margin-top:24px">Browse Other Collections</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
 {% endblock %}

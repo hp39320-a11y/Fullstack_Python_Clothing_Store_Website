@@ -1,97 +1,164 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/product_detail.css' %}">
-{% endblock %}
-
-{% block title %}{{ product.name }} | Product Detail{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/product_detail.css' %}">{% endblock %}
+{% block title %}{{ product.name }} | UrbanWear{% endblock %}
 
 {% block content %}
+<!-- BREADCRUMB -->
+<nav class="breadcrumb-bar">
+  <a href="{% url 'index' %}">Home</a> <span>›</span>
+  <a href="{% url 'shop' %}">Shop</a> <span>›</span>
+  <a href="{% url 'category_view' product.category.id %}">{{ product.category.name }}</a> <span>›</span>
+  <span class="bc-active">{{ product.name }}</span>
+</nav>
 
-<div class="product-detail-container">
+<div class="pd-container">
 
-    <!-- IMAGE -->
-    <div class="product-images">
+  <!-- IMAGE -->
+  <div class="pd-image-col">
+    <div class="pd-main-img">
+      {% if product.image %}
+      <img src="{{ product.image.url }}" alt="{{ product.name }}" id="pd-main-img">
+      {% else %}
+      <div class="pd-img-ph">👗</div>
+      {% endif %}
 
-        <!-- ❤️ Wishlist -->
-        <button class="wishlist-icon" data-id="{{ product.id }}">
-            ❤️
+      {% if product.stock == 0 %}
+      <div class="pd-sold-overlay">SOLD OUT</div>
+      {% elif product.stock <= 5 %}
+      <div class="pd-low-badge">🔥 Only {{ product.stock }} left!</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="pd-info-col">
+
+    <div class="pd-brand">{{ product.category.name }} — {{ product.subcategory.name }}</div>
+    <h1 class="pd-title">{{ product.name }}</h1>
+
+    <div class="pd-ratings">
+      <span class="rating-stars">★★★★☆</span>
+      <span class="rating-count">(128 ratings)</span>
+      <span class="rating-sold">| 500+ sold</span>
+    </div>
+
+    <div class="pd-price-block">
+      <span class="pd-price">₹{{ product.price }}</span>
+      <span class="pd-mrp">₹{{ product.price|add:"200" }}</span>
+      <span class="pd-off">{{ product.price|add:"200"|add:"-0" }}% OFF</span>
+    </div>
+
+    {% if product.stock > 0 %}
+    <div class="pd-instock">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      In Stock — {{ product.stock }} units available
+    </div>
+    {% else %}
+    <div class="pd-outstock">Currently Out of Stock</div>
+    {% endif %}
+
+    {% if product.description %}
+    <p class="pd-desc">{{ product.description }}</p>
+    {% endif %}
+
+    <div class="pd-divider"></div>
+
+    <!-- SIZE -->
+    {% if product_sizes %}
+    <div class="pd-section">
+      <div class="pd-section-head">
+        <span>Select Size</span>
+        <a href="#" class="size-guide-btn">Size Guide</a>
+      </div>
+      <div class="pd-sizes">
+        {% for size in product_sizes %}
+        <button type="button" class="pd-size-btn" onclick="selectSize(this)" data-size="{{ size }}" id="pd-size-{{ size }}">
+          {{ size }}
         </button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
 
-        {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.name }}">
-        {% else %}
-            <img src="https://via.placeholder.com/400x400">
-        {% endif %}
-
+    <!-- QUANTITY -->
+    <div class="pd-section">
+      <span class="pd-section-label">Quantity</span>
+      <div class="pd-qty-bar">
+        <button type="button" onclick="changeQty(-1)" class="pd-qty-btn" aria-label="Decrease">−</button>
+        <input type="number" id="pd-qty" value="1" min="1" max="{{ product.stock }}" readonly>
+        <button type="button" onclick="changeQty(1)" class="pd-qty-btn" aria-label="Increase">+</button>
+      </div>
     </div>
 
-    <!-- INFO -->
-    <div class="product-info">
+    <!-- ACTIONS -->
+    {% if product.stock > 0 %}
+    <div class="pd-actions">
+      <button class="btn btn-ghost btn-lg add-to-cart-btn" data-id="{{ product.id }}" id="pd-cart-btn" style="justify-content:center;flex:1">
+        🛒 Add to Cart
+      </button>
+      <form id="buyForm" method="POST" action="{% url 'buy_now' product.id %}" style="flex:1">
+        {% csrf_token %}
+        <input type="hidden" name="size" id="selected-size">
+        <input type="hidden" name="quantity" id="buy-qty" value="1">
+        <button type="submit" class="btn btn-accent btn-lg btn-full" id="pd-buy-btn">
+          ⚡ Buy Now
+        </button>
+      </form>
+    </div>
+    <button class="pd-wishlist-btn wishlist-btn" data-id="{{ product.id }}" id="pd-wishlist-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Save to Wishlist
+    </button>
+    {% else %}
+    <button class="btn btn-ghost btn-lg btn-full" disabled style="justify-content:center;opacity:.5;cursor:not-allowed">Out of Stock</button>
+    {% endif %}
 
-        <h2 class="product-title">{{ product.name }}</h2>
+    <div class="pd-divider"></div>
 
-        <p class="product-price">₹{{ product.price }}</p>
-
-        <p class="product-stock">
-            {% if product.stock > 0 %}
-                ✔ In Stock
-            {% else %}
-                ❌ Out of Stock
-            {% endif %}
-        </p>
-
-        {% if product.description %}
-        <p class="product-description">
-            {{ product.description }}
-        </p>
-        {% endif %}
-
-        <!-- SIZE -->
-        {% if product_sizes %}
-        <div class="size-section">
-            <p class="size-title">Select Size</p>
-
-            <div class="size-options">
-                {% for size in product_sizes %}
-                <button type="button"
-                        class="size-btn"
-                        onclick="selectSize(this)"
-                        data-size="{{ size }}">
-                    {{ size }}
-                </button>
-                {% endfor %}
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- QUANTITY -->
-        <label>Quantity</label>
-        <input type="number" name="quantity" form="buyForm"
-               value="1" min="1" max="{{ product.stock }}">
-
-        <!-- BUTTONS -->
-        <div class="product-buttons">
-
-            <!-- BUY NOW -->
-            <form id="buyForm" method="POST" action="{% url 'buy_now' product.id %}">
-                {% csrf_token %}
-                <input type="hidden" name="size" id="selected-size">
-                <button type="submit" class="buy-now-btn">
-                    Buy Now
-                </button>
-            </form>
-
-            <!-- ADD TO CART -->
-            <button class="add-to-cart-btn" data-id="{{ product.id }}">
-                Add to Cart
-            </button>
-
-        </div>
-
+    <!-- OFFERS -->
+    <div class="pd-offers">
+      <h4 class="pd-offers-title">Available Offers</h4>
+      <div class="pd-offer-item"><span class="offer-tag">Bank Offer</span> 10% off on SBI Credit Cards. T&C</div>
+      <div class="pd-offer-item"><span class="offer-tag">Special</span> Get ₹50 off on orders above ₹999</div>
+      <div class="pd-offer-item"><span class="offer-tag">Free Delivery</span> On orders above ₹999</div>
     </div>
 
+    <div class="pd-divider"></div>
+
+    <!-- DELIVERY CHECK -->
+    <div class="pd-delivery">
+      <h4>Delivery & Returns</h4>
+      <div class="pd-delivery-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <div><strong>Free Delivery</strong> on orders above ₹999</div>
+      </div>
+      <div class="pd-delivery-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        <div><strong>Easy 30-Day Returns</strong> No questions asked</div>
+      </div>
+      <div class="pd-delivery-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <div><strong>Secure Payment</strong> 100% safe transactions</div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
+<script>
+function selectSize(btn) {
+  document.querySelectorAll('.pd-size-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('selected-size').value = btn.dataset.size;
+}
+function changeQty(d) {
+  const inp = document.getElementById('pd-qty');
+  let v = parseInt(inp.value) + d;
+  if(v < 1) v = 1;
+  if(v > parseInt(inp.max)) v = parseInt(inp.max);
+  inp.value = v;
+  document.getElementById('buy-qty').value = v;
+}
+</script>
 {% endblock %}

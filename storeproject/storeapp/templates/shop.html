@@ -1,122 +1,167 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Shop All Clothing | UrbanWear{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/shop.css' %}">{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/shop.css' %}">
 
-<h2 class="page-title">Shop</h2>
+<div class="page-hero">
+  <span class="section-label">Browse</span>
+  <h1>All Products</h1>
+  <p>{{ products.paginator.count }} styles available</p>
+</div>
 
-<div class="shop-container">
+<div class="shop-wrapper">
 
-    <!-- FILTER BOX -->
-    <div class="filter-box">
-        <h3>Categories</h3>
+  <!-- SIDEBAR -->
+  <aside class="shop-sidebar" id="shop-sidebar">
 
-        <!-- ALL -->
-        <a href="{% url 'shop' %}">All</a>
-
-        <!-- CATEGORY LINKS -->
+    <div class="sidebar-section">
+      <h3 class="sidebar-heading">Categories</h3>
+      <div class="filter-list">
+        <a href="{% url 'shop' %}" class="filter-item {% if not request.GET.category %}active{% endif %}">
+          <span>All Products</span>
+          <span class="filter-count" style="background:var(--text-primary);color:var(--bg-primary)">All</span>
+        </a>
         {% for cat in categories %}
-            <a href="?category={{ cat.id }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">
-                {{ cat.name }}
-            </a>
+        <a href="?category={{ cat.id }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}"
+           class="filter-item {% if request.GET.category == cat.id|stringformat:'s' %}active{% endif %}">
+          <span>{{ cat.name }}</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
         {% endfor %}
-
-        <!-- PRICE FILTER -->
-        <h3 style="margin-top:20px;">Price</h3>
-
-        <form method="GET">
-
-            <!-- KEEP CATEGORY -->
-            <input type="hidden" name="category" value="{{ request.GET.category }}">
-
-            <input type="number" name="min_price" placeholder="Min Price"
-                   value="{{ request.GET.min_price }}">
-
-            <input type="number" name="max_price" placeholder="Max Price"
-                   value="{{ request.GET.max_price }}">
-
-            <button type="submit">Apply</button>
-        </form>
-
-        <!-- QUICK PRICE -->
-        <div class="quick-price">
-
-            <a href="?category={{ request.GET.category }}&min_price=0&max_price=500">
-                Below ₹500
-            </a>
-
-            <a href="?category={{ request.GET.category }}&min_price=500&max_price=1000">
-                ₹500 - ₹1000
-            </a>
-
-            <a href="?category={{ request.GET.category }}&min_price=1000">
-                Above ₹1000
-            </a>
-
-        </div>
-
+      </div>
     </div>
 
-    <!-- PRODUCTS -->
-    <div class="product-grid">
+    <div class="sidebar-section">
+      <h3 class="sidebar-heading">Price Range</h3>
+      <form method="GET" id="price-filter-form">
+        <input type="hidden" name="category" value="{{ request.GET.category }}">
+        <div class="price-range-inputs">
+          <div class="price-field">
+            <label>Min ₹</label>
+            <input type="number" name="min_price" placeholder="0" value="{{ request.GET.min_price }}" class="form-control price-input">
+          </div>
+          <span class="price-dash">—</span>
+          <div class="price-field">
+            <label>Max ₹</label>
+            <input type="number" name="max_price" placeholder="Any" value="{{ request.GET.max_price }}" class="form-control price-input">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-dark btn-full" style="margin-top:12px">Apply</button>
+      </form>
 
-        {% for product in products %}
-        <div class="product-card">
+      <div class="quick-prices">
+        <div class="quick-price-label">Quick Select</div>
+        <a href="?category={{ request.GET.category }}&min_price=0&max_price=499" class="quick-price-btn">Under ₹500</a>
+        <a href="?category={{ request.GET.category }}&min_price=500&max_price=999" class="quick-price-btn">₹500 – ₹999</a>
+        <a href="?category={{ request.GET.category }}&min_price=1000&max_price=1999" class="quick-price-btn">₹1000 – ₹2000</a>
+        <a href="?category={{ request.GET.category }}&min_price=2000" class="quick-price-btn">Above ₹2000</a>
+      </div>
+    </div>
 
-            <!-- 🔥 CLICKABLE PRODUCT -->
-            <a href="{% url 'product_detail' product.id %}" class="product-link">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}">
-                {% endif %}
+    {% if request.GET.category or request.GET.min_price or request.GET.max_price %}
+    <a href="{% url 'shop' %}" class="clear-filter-link">✕ Clear all filters</a>
+    {% endif %}
 
-                <h4>{{ product.name }}</h4>
-            </a>
+  </aside>
 
-            <p class="price">₹{{ product.price }}</p>
+  <!-- PRODUCTS -->
+  <main class="shop-main">
 
-            {% if product.stock > 0 %}
-                <a href="{% url 'add_to_cart' product.id %}" class="cart-btn">
-                    Add to Cart
-                </a>
+    <div class="shop-topbar">
+      <p class="results-text">
+        Showing <strong>{{ products|length }}</strong> of <strong>{{ products.paginator.count }}</strong> products
+      </p>
+      <button class="filter-toggle-btn" id="filter-toggle-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filters
+      </button>
+    </div>
+
+    <div class="products-grid">
+      {% for product in products %}
+      <div class="product-card" id="shop-product-{{ product.id }}">
+
+        <div class="pc-img-wrap">
+          <a href="{% url 'product_detail' product.id %}">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
             {% else %}
-                <p class="out">Out of Stock</p>
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:60px;color:var(--text-tertiary)">👗</div>
             {% endif %}
+          </a>
 
+          {% if product.stock == 0 %}
+          <span class="pc-badge" style="background:var(--text-tertiary)">Sold Out</span>
+          {% elif product.stock <= 5 %}
+          <span class="pc-badge pc-badge-low">Only {{ product.stock }} Left!</span>
+          {% endif %}
+
+          <button class="pc-wishlist wishlist-icon" data-id="{{ product.id }}" id="shop-wish-{{ product.id }}" title="Wishlist" style="border:none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+
+          {% if product.stock > 0 %}
+          <div class="pc-quick-actions">
+            <button class="btn btn-white btn-sm add-to-cart-btn" data-id="{{ product.id }}" id="shop-qcart-{{ product.id }}" style="flex:1;justify-content:center;font-size:12px">Add to Cart</button>
+            <a href="{% url 'product_detail' product.id %}" class="btn btn-dark btn-sm" style="flex:1;justify-content:center;font-size:12px">Buy Now</a>
+          </div>
+          {% endif %}
         </div>
-        {% empty %}
-            <p>No products found</p>
-        {% endfor %}
 
+        <div class="pc-body">
+          <div class="pc-brand">{{ product.category.name }}</div>
+          <div class="pc-name">{{ product.name }}</div>
+          <div class="pc-price-row">
+            <span class="pc-price">₹{{ product.price }}</span>
+          </div>
+          {% if product.stock == 0 %}
+          <div style="text-align:center;padding:10px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border-light)">Out of Stock</div>
+          {% else %}
+          <div class="pc-actions">
+            <button class="btn btn-ghost btn-sm add-to-cart-btn" data-id="{{ product.id }}" id="shop-cart-{{ product.id }}" style="justify-content:center">🛒 Cart</button>
+            <a href="{% url 'product_detail' product.id %}" class="btn btn-accent btn-sm" id="shop-buy-{{ product.id }}" style="justify-content:center">Buy Now</a>
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+      {% empty %}
+      <div style="grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-secondary)">
+        <div style="font-size:56px;margin-bottom:20px">🔍</div>
+        <h3 style="font-size:22px;margin-bottom:10px;color:var(--text-primary)">No products found</h3>
+        <p style="margin-bottom:24px">Try adjusting your filters or browse all products</p>
+        <a href="{% url 'shop' %}" class="btn btn-dark">Clear Filters</a>
+      </div>
+      {% endfor %}
     </div>
 
-</div>
-
-<!-- 🔥 PAGINATION -->
-<div class="pagination">
-
-    {% if products.has_previous %}
-        <a href="?page=1&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">First</a>
-
-        <a href="?page={{ products.previous_page_number }}&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">Prev</a>
+    {% if products.has_other_pages %}
+    <div class="pagination">
+      {% if products.has_previous %}
+      <a href="?page=1&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">«</a>
+      <a href="?page={{ products.previous_page_number }}&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">‹ Prev</a>
+      {% endif %}
+      {% for num in products.paginator.page_range %}
+        {% if products.number == num %}<span class="active">{{ num }}</span>
+        {% else %}<a href="?page={{ num }}&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">{{ num }}</a>{% endif %}
+      {% endfor %}
+      {% if products.has_next %}
+      <a href="?page={{ products.next_page_number }}&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">Next ›</a>
+      <a href="?page={{ products.paginator.num_pages }}&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">»</a>
+      {% endif %}
+    </div>
     {% endif %}
 
-    {% for num in products.paginator.page_range %}
-        {% if products.number == num %}
-            <span class="active">{{ num }}</span>
-        {% else %}
-            <a href="?page={{ num }}&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">
-                {{ num }}
-            </a>
-        {% endif %}
-    {% endfor %}
-
-    {% if products.has_next %}
-        <a href="?page={{ products.next_page_number }}&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">Next</a>
-
-        <a href="?page={{ products.paginator.num_pages }}&category={{ request.GET.category }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}">Last</a>
-    {% endif %}
-
+  </main>
 </div>
+
+<script>
+document.getElementById('filter-toggle-btn')?.addEventListener('click', () => {
+  document.getElementById('shop-sidebar').classList.toggle('sidebar-open');
+});
+</script>
 
 {% endblock %}

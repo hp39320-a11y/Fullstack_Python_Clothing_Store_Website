@@ -1,4 +1,4 @@
-
+/* BODY */
 body{
     margin:0;
     font-family: 'Segoe UI', sans-serif;
@@ -9,7 +9,7 @@ body{
     background: linear-gradient(135deg,#000,#434343);
 }
 
-
+/* CONTAINER */
 .register-container{
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(12px);
@@ -21,7 +21,7 @@ body{
     color:white;
 }
 
-
+/* TITLE */
 h2{
     margin-bottom:5px;
 }
@@ -32,7 +32,7 @@ h2{
     margin-bottom:20px;
 }
 
-
+/* INPUT BOX */
 .input-box{
     text-align:left;
     margin-bottom:15px;
@@ -46,7 +46,7 @@ label{
     color:#ddd;
 }
 
-
+/* INPUT */
 input{
     width:100%;
     padding:12px;
@@ -66,7 +66,7 @@ input:focus{
     background: rgba(255,255,255,0.3);
 }
 
-
+/* PASSWORD ICON */
 .password-box{
     position:relative;
 }
@@ -78,7 +78,7 @@ input:focus{
     cursor:pointer;
 }
 
-
+/* BUTTON */
 button{
     width: 400px;
     margin-top:15px;
@@ -96,7 +96,7 @@ button:hover{
     background:#fb8c00;
 }
 
-
+/* LOGIN LINK */
 .login-link{
     margin-top:20px;
     font-size:14px;
@@ -108,7 +108,7 @@ button:hover{
     font-weight:bold;
 }
 
-
+/* ERROR BOX */
 .error-box {
     background: rgba(255,0,0,0.2);
     color: #ff4d4d;
@@ -118,7 +118,7 @@ button:hover{
     text-align: center;
 }
 
-
+/* FIELD ERRORS */
 .errorlist {
     color: #ff4d4d;
     font-size: 12px;

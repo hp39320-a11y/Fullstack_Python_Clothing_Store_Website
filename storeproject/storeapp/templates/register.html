@@ -1,83 +1,132 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Register</title>
-    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Create your UrbanWear account and start shopping premium fashion.">
+  <title>Create Account | UrbanWear</title>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
-
 <body>
 
-<div class="register-container">
+<div class="auth-layout">
 
-    <h2>Create Account 🚀</h2>
-    <p class="subtitle">Join UrbanWear</p>
+  <!-- LEFT: BRAND PANEL -->
+  <div class="auth-brand-panel">
+    <div class="auth-brand-inner">
+      <a href="/" class="auth-logo">Urban<span>Wear</span></a>
+      <div class="auth-brand-content">
+        <h2>Join the Fashion Community</h2>
+        <p>Create your free account and get access to thousands of premium styles, exclusive offers, and seamless shopping.</p>
+        <div class="auth-brand-features">
+          <div class="auth-feature">✅ Free delivery above ₹999</div>
+          <div class="auth-feature">✅ 30-day easy returns</div>
+          <div class="auth-feature">✅ Authentic products only</div>
+          <div class="auth-feature">✅ Secure payment gateway</div>
+        </div>
+      </div>
+      <div class="auth-brand-stats">
+        <div class="auth-stat"><span>50K+</span>Happy Customers</div>
+        <div class="auth-stat"><span>1000+</span>Styles</div>
+        <div class="auth-stat"><span>4.8★</span>Rating</div>
+      </div>
+    </div>
+  </div>
 
-    <form method="POST">
+  <!-- RIGHT: FORM -->
+  <div class="auth-form-panel">
+    <div class="auth-form-wrap">
+      <a href="/" class="back-to-store">← Back to Store</a>
+
+      <h1 class="auth-title">Create Account 🚀</h1>
+      <p class="auth-subtitle">Join thousands of fashion lovers at UrbanWear</p>
+
+      {% if form.non_field_errors %}
+      <div class="auth-alert auth-alert-error">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {{ form.non_field_errors.0 }}
+      </div>
+      {% endif %}
+
+      <form method="POST" class="auth-form" id="register-form">
         {% csrf_token %}
 
-        {% if form.non_field_errors %}
-            <div class="error-box">
-                {{ form.non_field_errors }}
+        <div class="form-row">
+          <div class="auth-field">
+            <label for="{{ form.first_name.id_for_label }}">First Name</label>
+            <div class="auth-input-wrap">
+              {{ form.first_name }}
             </div>
-        {% endif %}
-
-        <!-- FIRST NAME -->
-        <div class="input-box">
-            <label>First Name</label>
-            {{ form.first_name }}
-            {{ form.first_name.errors }}
+            {% if form.first_name.errors %}<div class="field-err">{{ form.first_name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="auth-field">
+            <label for="{{ form.last_name.id_for_label }}">Last Name</label>
+            <div class="auth-input-wrap">
+              {{ form.last_name }}
+            </div>
+            {% if form.last_name.errors %}<div class="field-err">{{ form.last_name.errors.0 }}</div>{% endif %}
+          </div>
         </div>
 
-        <!-- LAST NAME -->
-        <div class="input-box">
-            <label>Last Name</label>
-            {{ form.last_name }}
-            {{ form.last_name.errors }}
-        </div>
-
-        <!-- USERNAME -->
-        <div class="input-box">
-            <label>Username</label>
+        <div class="auth-field">
+          <label for="{{ form.username.id_for_label }}">Username</label>
+          <div class="auth-input-wrap">
+            <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             {{ form.username }}
-            {{ form.username.errors }}
+          </div>
+          {% if form.username.errors %}<div class="field-err">{{ form.username.errors.0 }}</div>{% endif %}
         </div>
 
-        <!-- PASSWORD -->
-        <div class="input-box password-box">
-            <label>Password</label>
+        <div class="auth-field">
+          <label for="{{ form.password1.id_for_label }}">Password</label>
+          <div class="auth-input-wrap">
+            <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             {{ form.password1 }}
-            <span class="toggle-password" onclick="togglePassword('id_password1')">👁️</span>
-            {{ form.password1.errors }}
+            <button type="button" class="pw-toggle" onclick="togglePw('{{ form.password1.id_for_label }}', this)" aria-label="Toggle password">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          {% if form.password1.errors %}<div class="field-err">{{ form.password1.errors.0 }}</div>{% endif %}
         </div>
 
-        <!-- CONFIRM PASSWORD -->
-        <div class="input-box password-box">
-            <label>Confirm Password</label>
+        <div class="auth-field">
+          <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+          <div class="auth-input-wrap">
+            <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             {{ form.password2 }}
-            <span class="toggle-password" onclick="togglePassword('id_password2')">👁️</span>
-            {{ form.password2.errors }}
+            <button type="button" class="pw-toggle" onclick="togglePw('{{ form.password2.id_for_label }}', this)" aria-label="Toggle confirm password">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          {% if form.password2.errors %}<div class="field-err">{{ form.password2.errors.0 }}</div>{% endif %}
         </div>
 
-        <button type="submit">Register</button>
+        <button type="submit" class="auth-submit-btn" id="register-submit-btn">Create Account →</button>
+      </form>
 
-    </form>
-
-    <p class="login-link">
-        Already have an account?
-        <a href="{% url 'login' %}">Login</a>
-    </p>
+      <p class="auth-switch-text">Already have an account? <a href="{% url 'login' %}">Sign in →</a></p>
+    </div>
+  </div>
 
 </div>
 
 <script>
-function togglePassword(id){
-    const input = document.getElementById(id);
-    if(input){
-        input.type = input.type === "password" ? "text" : "password";
-    }
+function togglePw(id, btn) {
+  const input = document.getElementById(id);
+  if (input) {
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.style.opacity = input.type === 'text' ? '1' : '0.4';
+  }
 }
 </script>
-
 </body>
 </html>

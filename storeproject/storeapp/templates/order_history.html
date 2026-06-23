@@ -5,144 +5,144 @@
 <link rel="stylesheet" href="{% static 'css/order_history.css' %}">
 {% endblock %}
 
+{% block title %}My Orders | UrbanWear{% endblock %}
+
 {% block content %}
 
-<h2 class="page-title">My Orders</h2>
+<div class="page-hero">
+  <span class="section-label">Account</span>
+  <h1>My Orders</h1>
+  <p>Track, manage and review all your purchases</p>
+</div>
 
-{% for order in orders %}
+<div class="orders-wrap">
 
-<div class="order-box">
+  {% for message in messages %}
+  <div class="alert alert-success" style="max-width:900px;margin:0 auto 16px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    {{ message }}
+  </div>
+  {% endfor %}
+
+  {% for order in orders %}
+  <div class="order-card" id="order-{{ order.id }}">
 
     <!-- HEADER -->
-    <div class="order-header">
-        <h3>Order #{{ order.id }}</h3>
-        <p>{{ order.created_at|date:"d M Y" }}</p>
+    <div class="order-card-header">
+      <div class="order-id-block">
+        <span class="order-label">Order</span>
+        <span class="order-id">#{{ order.id }}</span>
+        <span class="order-date">{{ order.created_at|date:"d M Y" }}</span>
+      </div>
 
-        <!-- ✅ STATUS -->
-        <p class="status {{ order.status }}">
-            {% if order.status == "cancelled" %}
-                ❌ Cancelled
-            {% elif order.status == "pending" %}
-                ⏳ Pending
-            {% elif order.status == "processing" %}
-                🔄 Processing
-            {% elif order.status == "shipped" %}
-                🚚 Shipped
-            {% elif order.status == "delivered" %}
-                ✅ Delivered
-            {% endif %}
-        </p>
-
-        <!-- ACTIONS -->
+      <div class="order-header-right">
+        <span class="order-status-badge status-{{ order.status|lower }}">
+          {% if order.status == "Cancelled" or order.status == "cancelled" %}❌ Cancelled
+          {% elif order.status == "Pending" or order.status == "pending" %}⏳ Pending
+          {% elif order.status == "Processing" or order.status == "processing" %}🔄 Processing
+          {% elif order.status == "Shipped" or order.status == "shipped" %}🚚 Shipped
+          {% elif order.status == "Out for Delivery" %}📦 Out for Delivery
+          {% elif order.status == "Delivered" or order.status == "delivered" %}✅ Delivered
+          {% else %}{{ order.status }}{% endif %}
+        </span>
         <div class="order-actions">
-            <a href="{% url 'order_tracking' order.id %}" class="track-btn">
-                Track Order
-            </a>
-
-            <!-- ✅ CANCEL BUTTON -->
-            {% if order.status != "cancelled" and order.status != "delivered" %}
-            <a href="#"
-               class="cancel-btn open-cancel-modal"
-               data-url="{% url 'cancel_order' order.id %}">
-               Cancel
-            </a>
-            {% endif %}
+          <a href="{% url 'order_tracking' order.id %}" class="track-btn" id="track-{{ order.id }}">Track Order</a>
+          {% if order.status != "Cancelled" and order.status != "cancelled" and order.status != "Delivered" and order.status != "delivered" %}
+          <a href="#" class="cancel-link open-cancel-modal" id="cancel-link-{{ order.id }}" data-url="{% url 'cancel_order' order.id %}">Cancel</a>
+          {% endif %}
         </div>
+      </div>
     </div>
 
     <!-- PRODUCTS -->
-    <div class="order-products">
-
-        {% for item in order.orderitem_set.all %}
-        <div class="order-item">
-
-            <div class="order-img">
-                <img src="{{ item.product.image.url }}">
-            </div>
-
-            <div class="order-info">
-                <h4>{{ item.product.name }}</h4>
-                <p>Qty: {{ item.quantity }}</p>
-                <p>₹{{ item.price }}</p>
-            </div>
-
+    <div class="order-items">
+      {% for item in order.orderitem_set.all %}
+      <div class="order-item">
+        <div class="order-item-img">
+          {% if item.product.image %}
+          <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
+          {% else %}
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:24px;color:var(--text-muted)">👗</div>
+          {% endif %}
         </div>
-        {% endfor %}
-
-    </div>
-
-    <p class="order-total">Total: ₹{{ order.total_amount }}</p>
-
-</div>
-
-{% empty %}
-<p class="empty">No orders found</p>
-{% endfor %}
-
-
-<!-- 🔥 CANCEL MODAL -->
-<div id="cancelModal" class="modal">
-    <div class="modal-box">
-        <h3>Cancel Order?</h3>
-        <p>Are you sure you want to cancel this order?</p>
-
-        <div class="modal-actions">
-            <button class="close-modal">No</button>
-            <a id="confirmCancelBtn" href="#">Yes, Cancel</a>
+        <div class="order-item-info">
+          <p class="order-item-name">{{ item.product.name }}</p>
+          <p class="order-item-meta">Qty: {{ item.quantity }}{% if item.size %} · Size: {{ item.size }}{% endif %}</p>
         </div>
+        <span class="order-item-price">₹{{ item.price }}</span>
+      </div>
+      {% endfor %}
     </div>
-</div>
 
-
-<!-- ✅ SUCCESS MESSAGE -->
-{% for message in messages %}
-<div class="cancel-success">
-    <div class="success-box">
-        <div class="cross">✖</div>
-        <h3>{{ message }}</h3>
+    <!-- FOOTER -->
+    <div class="order-card-footer">
+      <div class="order-payment-info">
+        <span class="pay-method">{{ order.payment_method|upper }}</span>
+        <span class="pay-status pay-{{ order.payment_status|lower }}">{{ order.payment_status }}</span>
+      </div>
+      <div class="order-total-row">
+        <span class="order-total-label">Total</span>
+        <span class="order-total-value">₹{{ order.total_amount }}</span>
+      </div>
     </div>
-</div>
-{% endfor %}
 
+  </div>
+  {% empty %}
+  <div class="orders-empty">
+    <div class="empty-icon">📦</div>
+    <h2>No orders yet</h2>
+    <p>When you place an order, it'll appear here.</p>
+    <a href="{% url 'shop' %}" class="btn-primary" id="start-shopping-btn">Start Shopping →</a>
+  </div>
+  {% endfor %}
 
-<!-- 🔥 PAGINATION -->
-<div class="pagination">
-
+  <!-- PAGINATION -->
+  {% if orders.has_other_pages %}
+  <div class="pagination">
     {% if orders.has_previous %}
-        <a href="?page=1">First</a>
-        <a href="?page={{ orders.previous_page_number }}">Prev</a>
+    <a href="?page=1">«</a>
+    <a href="?page={{ orders.previous_page_number }}">‹</a>
     {% endif %}
-
     {% for num in orders.paginator.page_range %}
-        {% if orders.number == num %}
-            <span class="active">{{ num }}</span>
-        {% else %}
-            <a href="?page={{ num }}">{{ num }}</a>
-        {% endif %}
+      {% if orders.number == num %}<span class="active">{{ num }}</span>
+      {% else %}<a href="?page={{ num }}">{{ num }}</a>{% endif %}
     {% endfor %}
-
     {% if orders.has_next %}
-        <a href="?page={{ orders.next_page_number }}">Next</a>
-        <a href="?page={{ orders.paginator.num_pages }}">Last</a>
+    <a href="?page={{ orders.next_page_number }}">›</a>
+    <a href="?page={{ orders.paginator.num_pages }}">»</a>
     {% endif %}
+  </div>
+  {% endif %}
 
 </div>
 
+<!-- CANCEL MODAL -->
+<div id="cancelModal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-icon">⚠️</div>
+    <h3>Cancel this order?</h3>
+    <p>This action cannot be undone. Are you sure you want to cancel?</p>
+    <div class="modal-actions">
+      <button class="btn-secondary close-modal" id="cancel-modal-no">Keep Order</button>
+      <a id="confirmCancelBtn" href="#" class="btn-danger" id="cancel-modal-yes">Yes, Cancel</a>
+    </div>
+  </div>
+</div>
 
-<!-- 🔥 MODAL JS -->
 <script>
 document.querySelectorAll(".open-cancel-modal").forEach(btn => {
-    btn.addEventListener("click", function () {
-        document.getElementById("cancelModal").classList.add("active");
-
-        const url = this.getAttribute("data-url");
-        document.getElementById("confirmCancelBtn").href = url;
-    });
+  btn.addEventListener("click", function(e) {
+    e.preventDefault();
+    document.getElementById("cancelModal").classList.add("active");
+    document.getElementById("confirmCancelBtn").href = this.getAttribute("data-url");
+  });
 });
-
-document.querySelector(".close-modal").onclick = function () {
-    document.getElementById("cancelModal").classList.remove("active");
-};
+document.querySelectorAll(".close-modal").forEach(btn => {
+  btn.onclick = () => document.getElementById("cancelModal").classList.remove("active");
+});
+document.getElementById("cancelModal").addEventListener("click", function(e) {
+  if (e.target === this) this.classList.remove("active");
+});
 </script>
 
 {% endblock %}

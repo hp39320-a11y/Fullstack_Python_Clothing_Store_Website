@@ -19,9 +19,9 @@ from django.http import HttpResponseForbidden
 
 def home(request):
     if request.user.is_authenticated and request.user.is_staff:
-        return redirect('admin_dashboard')
+        return redirect('/admin/')
 
-    return render(request, 'home.html')
+    return render(request, 'index.html')
 
 def register(request):
 
@@ -61,11 +61,12 @@ def user_login(request):
 
 
 def user_logout(request):
+    is_admin = request.user.is_staff
     logout(request)
+
+    if is_admin:
+        return redirect('/admin/')
     return redirect('index')
-
-
-
 
 def index(request):
     categories = Cateogry.objects.all() 
@@ -285,24 +286,28 @@ def checkout(request):
                     return redirect('order_success', order_id=order.id)
 
                 elif payment_method == "razorpay":
-                    client = razorpay.Client(
-                        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-                    )
+                    try:
+                        client = razorpay.Client(
+                            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+                        )
 
-                    payment = client.order.create({
-                        "amount": int(total * 100),
-                        "currency": "INR",
-                        "payment_capture": 1
-                    })
+                        payment = client.order.create({
+                            "amount": int(total * 100),
+                            "currency": "INR",
+                            "payment_capture": 1
+                        })
 
-                    order.razorpay_order_id = payment["id"]
-                    order.save()
+                        order.razorpay_order_id = payment["id"]
+                        order.save()
 
-                    return render(request, "razorpay_payment.html", {
-                        "order": order,
-                        "payment": payment,
-                        "key": settings.RAZORPAY_KEY_ID
-                    })
+                        return render(request, "razorpay_payment.html", {
+                            "order": order,
+                            "payment": payment,
+                            "key": settings.RAZORPAY_KEY_ID
+                        })
+                    except Exception as e:
+                        order.delete()
+                        error = "Payment gateway authentication failed. Please select Cash on Delivery or configure valid credentials."
 
     # =========================
     # LOAD SESSION

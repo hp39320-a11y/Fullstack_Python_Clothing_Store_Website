@@ -3,134 +3,262 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="UrbanWear – India's premium online clothing store for men and women. Shop the latest fashion trends.">
+<script>
+  (function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600;1,700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
 {% block extra_css %}{% endblock %}
-
-<title>{% block title %}Clothing{% endblock %}</title>
+<title>{% block title %}UrbanWear – Premium Fashion{% endblock %}</title>
 </head>
-
 <body>
-    
 
-<header>
-    
-
-<div class="header-left">
-
-<div class="logo">UrbanWear</div>
-
-<form method="GET" action="{% url 'search' %}" class="search-form">
-<input type="text" name="q" placeholder="Search products..." required>
-<button type="submit">🔍</button>
-</form>
-
+<!-- TOP BAR -->
+<div class="top-bar">
+  🎉 Summer Sale — Up to 50% OFF! Free delivery on orders above ₹999.
+  <a href="{% url 'shop' %}"> Shop Now →</a>
 </div>
 
-<nav>
+<!-- HEADER -->
+<header id="main-header">
+  <div class="header-inner">
 
-<ul class="navbar">
+    <a href="{% url 'index' %}" class="logo">Urban<span class="logo-accent">Wear</span></a>
 
-<li><a href="{% url 'index' %}">Home</a></li>
-<li><a href="{% url 'shop' %}">Shop</a></li>
+    <form method="GET" action="{% url 'search' %}" class="search-form" id="search-form">
+      <input type="text" name="q" placeholder="Search for clothes, brands, styles..." id="search-input" autocomplete="off">
+      <button type="submit">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search
+      </button>
+    </form>
 
-{% for c in categories %}
-<li>
-<a href="{% url 'category_view' c.id %}">
-{{ c.name }}
-</a>
-</li>
-{% endfor %}
+    <nav>
+      <ul class="navbar">
 
-<li>
-<a href="{% url 'cart_detail' %}">
-🛒 Cart ({{cart_count}})
-</a>
-</li>
+        {% if user.is_authenticated %}
+        <li class="dropdown">
+          <a href="#" class="nav-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            {{ user.first_name|default:user.username }}
+          </a>
+          <div class="dropdown-content">
+            <a href="{% url 'order_history' %}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              My Orders
+            </a>
+            <a href="{% url 'wishlist' %}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              Wishlist
+            </a>
+            <a href="{% url 'logout' %}" class="logout-link">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Sign Out
+            </a>
+          </div>
+        </li>
+        {% else %}
+        <li><a href="{% url 'login' %}" class="nav-link">Login</a></li>
+        <li><a href="{% url 'register' %}" class="nav-cta">Join Free</a></li>
+        {% endif %}
 
-{% if user.is_authenticated %}
+        <li>
+          <a href="{% url 'cart_detail' %}" class="nav-link cart-link" aria-label="Cart">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <span class="cart-badge" id="cart-badge" {% if not cart_count or cart_count == 0 %}style="display:none;"{% endif %}>{{ cart_count|default:0 }}</span>
+          </a>
+        </li>
 
-<li class="dropdown">
+        <li>
+          <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Light/Dark Mode">
+            <svg id="theme-toggle-dark-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="display:none;"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+            <svg id="theme-toggle-light-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" style="display:none;"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.46 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 100 2h1z" fill-rule="evenodd" clip-rule="evenodd"></path></svg>
+          </button>
+        </li>
 
-<a href="#" class="dropbtn">
-👤 {{ user.first_name|default:user.username }}
-</a>
+      </ul>
+    </nav>
 
-<div class="dropdown-content">
-<a href="{% url 'order_history' %}">My Orders</a>
-<a href="{% url 'wishlist' %}">Wishlist</a>
-<a href="{% url 'contact' %}">Contact</a>
-<a href="{% url 'logout' %}">Logout</a>
-
-</div>
-
-</li>
-
-{% else %}
-
-<li><a href="{% url 'login' %}">Login</a></li>
-<li><a href="{% url 'register' %}">Register</a></li>
-
-{% endif %}
-
-</ul>
-
-</nav>
-
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </header>
 
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobile-nav">
+  <a href="{% url 'index' %}">🏠 Home</a>
+  <a href="{% url 'shop' %}">🛍️ Shop All</a>
+  {% for c in categories %}<a href="{% url 'category_view' c.id %}">{{ c.name }}</a>{% endfor %}
+  <a href="{% url 'cart_detail' %}">🛒 Cart</a>
+  {% if user.is_authenticated %}
+  <a href="{% url 'order_history' %}">📦 My Orders</a>
+  <a href="{% url 'wishlist' %}">❤️ Wishlist</a>
+  <a href="{% url 'logout' %}">Sign Out</a>
+  {% else %}
+  <a href="{% url 'login' %}">Login</a>
+  <a href="{% url 'register' %}">Create Account</a>
+  {% endif %}
+</div>
 
+<!-- CATEGORY BAR -->
+<div class="cat-bar">
+  <div class="cat-bar-inner">
+    <a href="{% url 'shop' %}" class="cat-bar-link">All</a>
+    {% for c in categories %}
+    <a href="{% url 'category_view' c.id %}" class="cat-bar-link">{{ c.name }}</a>
+    {% endfor %}
+    <a href="{% url 'shop' %}?min_price=0&max_price=500" class="cat-bar-link" style="color:var(--accent)">Under ₹500</a>
+    <a href="{% url 'shop' %}" class="cat-bar-link">New Arrivals</a>
+    <a href="{% url 'shop' %}" class="cat-bar-link">Sale 🔥</a>
+  </div>
+</div>
+
+<main class="main-content">
 {% block content %}
 {% endblock %}
+</main>
 
+<!-- NEWSLETTER -->
+<div class="newsletter">
+  <h2>Get Exclusive Deals First</h2>
+  <p>Subscribe and be the first to hear about new arrivals, special offers, and style tips.</p>
+  <form class="newsletter-form" onsubmit="return false;">
+    <input type="email" placeholder="Enter your email address">
+    <button type="submit">Subscribe</button>
+  </form>
+</div>
 
+<!-- FEATURES -->
+<div class="features-strip">
+  <div class="feature-item">
+    <div class="feature-icon">🚚</div>
+    <div><h4>Free Delivery</h4><p>On orders above ₹999</p></div>
+  </div>
+  <div class="feature-item">
+    <div class="feature-icon">🔄</div>
+    <div><h4>Easy Returns</h4><p>30-day hassle-free returns</p></div>
+  </div>
+  <div class="feature-item">
+    <div class="feature-icon">🔒</div>
+    <div><h4>Secure Payments</h4><p>Razorpay & Cash on Delivery</p></div>
+  </div>
+  <div class="feature-item">
+    <div class="feature-icon">✅</div>
+    <div><h4>100% Authentic</h4><p>Genuine products guaranteed</p></div>
+  </div>
+  <div class="feature-item">
+    <div class="feature-icon">🎁</div>
+    <div><h4>Gift Wrapping</h4><p>Available on all orders</p></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
 <footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">Urban<span>Wear</span></div>
+      <p>Your one-stop destination for premium men's and women's fashion. Quality clothing at unbeatable prices, delivered to your doorstep.</p>
+      <div class="footer-social">
+        <a href="#" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+        <a href="#" aria-label="Twitter"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg></a>
+        <a href="#" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+        <a href="#" aria-label="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-1.96C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.4 19.54C5.12 20 12 20 12 20s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg></a>
+      </div>
+    </div>
 
-<div class="footer-container">
+    <div class="footer-links">
+      <h4>Shop</h4>
+      {% for category in categories %}
+      <a href="{% url 'category_view' category.id %}">{{ category.name }}</a>
+      {% endfor %}
+      <a href="{% url 'shop' %}">All Products</a>
+      <a href="{% url 'shop' %}">New Arrivals</a>
+      <a href="{% url 'shop' %}">Sale</a>
+    </div>
 
-<div>
+    <div class="footer-links">
+      <h4>My Account</h4>
+      <a href="{% url 'cart_detail' %}">My Cart</a>
+      <a href="{% url 'wishlist' %}">My Wishlist</a>
+      <a href="{% url 'order_history' %}">My Orders</a>
+      <a href="{% url 'contact' %}">Contact Us</a>
+    </div>
 
-<h3>Shop</h3>
+    <div class="footer-links">
+      <h4>Help</h4>
+      <a href="#">FAQ</a>
+      <a href="#">Shipping Policy</a>
+      <a href="#">Return Policy</a>
+      <a href="#">Size Guide</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+    </div>
+  </div>
 
-{% for category in categories %}
-<a href="{% url 'category_view' category.id %}">
-{{ category.name }}
-</a>
-{% endfor %}
-
-</div>
-
-<div>
-
-<h3>Customer</h3>
-
-<a href="{% url 'cart_detail' %}">Cart</a>
-<a href="{% url 'wishlist' %}">Wishlist</a>
-<a href="{% url 'order_history' %}">My Orders</a>
-<a href="{% url 'contact' %}">Contact</a>
-
-</div>
-
-
-<div>
-
-<h3>About Store</h3>
-
-<p>
-UrbanWear is an online clothing store offering the latest fashion for men and women.
-</p>
-
-</div>
-
-</div>
-
-<p class="copyright">
-© 2026 UrbanWear. All rights reserved.
-</p>
-
+  <div class="footer-bottom">
+    <p>© 2026 UrbanWear. All rights reserved.</p>
+    <div class="footer-payments">
+      <span class="payment-badge">VISA</span>
+      <span class="payment-badge">MASTERCARD</span>
+      <span class="payment-badge">UPI</span>
+      <span class="payment-badge">COD</span>
+      <span class="payment-badge">RAZORPAY</span>
+    </div>
+  </div>
 </footer>
+
 <div id="toast"></div>
 <script src="{% static 'js/toast.js' %}"></script>
+<script>
+  // Sticky header shadow
+  const header = document.getElementById('main-header');
+  window.addEventListener('scroll', () => { header.classList.toggle('scrolled', window.scrollY > 10); });
+
+  // Mobile menu
+  const mobileBtn = document.getElementById('mobile-menu-btn');
+  const mobileNav = document.getElementById('mobile-nav');
+  mobileBtn?.addEventListener('click', () => { mobileNav.classList.toggle('active'); });
+
+  // Highlight current cat bar link
+  const catLinks = document.querySelectorAll('.cat-bar-link');
+  catLinks.forEach(link => { if(link.href === window.location.href) link.classList.add('active'); });
+
+  // Light/Dark Theme Toggler
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  const darkIcon = document.getElementById('theme-toggle-dark-icon');
+  const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+  function updateThemeIcons(theme) {
+    if (theme === 'dark') {
+      darkIcon.style.display = 'none';
+      lightIcon.style.display = 'block';
+    } else {
+      darkIcon.style.display = 'block';
+      lightIcon.style.display = 'none';
+    }
+  }
+
+  // Initial theme icon sync
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  updateThemeIcons(currentTheme);
+
+  themeToggleBtn?.addEventListener('click', () => {
+    const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcons(newTheme);
+  });
+</script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,50 +1,61 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Order Successful</title>
-
-    <link rel="stylesheet" href="{% static 'css/order_success.css' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Successful | UrbanWear</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/order_success.css' %}">
 </head>
 <body>
 
-<!-- 🎉 CONFETTI -->
-<canvas id="confetti"></canvas>
+<div class="success-page">
+  <div class="success-card">
 
-
-<div class="success-box">
-
-    <!-- ✅ Tick Animation -->
-    <div class="checkmark-circle">
-        <div class="background"></div>
-        <div class="checkmark draw"></div>
+    <!-- CHECKMARK ANIMATION -->
+    <div class="success-check">
+      <svg viewBox="0 0 52 52" class="check-svg">
+        <circle class="check-circle" cx="26" cy="26" r="25" fill="none"/>
+        <path class="check-tick" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+      </svg>
     </div>
 
-    <h1>Order Placed Successfully 🎉</h1>
+    <h1>Order Placed! 🎉</h1>
+    <p class="success-msg">Thank you for shopping with UrbanWear.</p>
 
-    <p>Thank you for shopping with us.</p>
-
-    <div class="order-id">
-        Order ID : <strong>#{{ order.id }}</strong>
+    <div class="order-id-box">
+      <span>Order ID</span>
+      <strong>#{{ order.id }}</strong>
     </div>
 
-    <p class="info">
-        Redirecting in <span id="countdown">5</span> sec...
-    </p>
-
-    <div>
-        <a href="{% url 'order_tracking' order.id %}" class="track-btn">
-            Track Order
-        </a>
-
-        <a href="{% url 'index' %}" class="btn">
-            Continue Shopping
-        </a>
+    <div class="success-info-grid">
+      <div class="info-item">
+        <div class="info-icon">📦</div>
+        <div><strong>Processing</strong><span>Your order is being prepared</span></div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">🚚</div>
+        <div><strong>2-5 Business Days</strong><span>Estimated delivery time</span></div>
+      </div>
+      <div class="info-item">
+        <div class="info-icon">📱</div>
+        <div><strong>SMS Updates</strong><span>You'll receive tracking updates</span></div>
+      </div>
     </div>
 
+    <div class="success-actions">
+      <a href="{% url 'order_tracking' order.id %}" class="btn-track" id="track-order-btn">Track My Order →</a>
+      <a href="{% url 'index' %}" class="btn-continue" id="continue-shopping-btn">Continue Shopping</a>
+    </div>
+
+    <p class="redirect-msg">Redirecting to home in <span id="countdown">5</span> seconds...</p>
+  </div>
 </div>
 
-<script src="{% static 'js/order_success.js' %}"></script>
+<canvas id="confetti-canvas" style="position:fixed;inset:0;pointer-events:none;z-index:9999"></canvas>
 
+<script src="{% static 'js/order_success.js' %}"></script>
 </body>
 </html>

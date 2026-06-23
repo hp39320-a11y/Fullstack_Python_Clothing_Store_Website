@@ -5,62 +5,134 @@
 <link rel="stylesheet" href="{% static 'css/wishlist.css' %}">
 {% endblock %}
 
+{% block title %}My Wishlist | UrbanWear{% endblock %}
+
 {% block content %}
 
-<div class="wishlist-container">
+<div class="page-hero">
+  <span class="section-label">Saved</span>
+  <h1>My Wishlist</h1>
+  <p>{% if items %}{{ items|length }} item{{ items|length|pluralize }} you love{% else %}Your wishlist is empty{% endif %}</p>
+</div>
 
-    <h2 class="title">Your Wishlist</h2>
+<div class="wishlist-wrap">
 
-    <div class="wishlist-grid">
+  {% if items %}
+  <div class="wishlist-grid">
+    {% for item in items %}
+    <div class="product-card" id="wish-item-{{ item.product.id }}">
 
-        {% for item in items %}
-
-        <div class="wishlist-card">
-
-            <div class="card-content">
-
-                <img src="{{ item.product.image.url }}" class="product-img">
-
-                <h3>{{ item.product.name }}</h3>
-
-                <p class="price">₹{{ item.product.price }}</p>
-                
-
-            </div>
-
-         
-            <div class="wishlist-buttons">
-
-    {% if item.product.stock > 0 %}
-    
-        <a href="{% url 'add_to_cart' item.product.id %}" class="cart-btn">
-            Add to Cart
+      <div class="pc-img-wrap">
+        <a href="{% url 'product_detail' item.product.id %}">
+          {% if item.product.image %}
+          <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
+          {% else %}
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-tertiary);font-size:48px">👗</div>
+          {% endif %}
         </a>
 
-    {% else %}
-    
-        <button class="cart-btn disabled" disabled>
-            Out of Stock
-        </button>
+        {% if item.product.stock == 0 %}
+        <span class="pc-badge" style="background:var(--text-tertiary)">Sold Out</span>
+        {% elif item.product.stock <= 5 %}
+        <span class="pc-badge pc-badge-low">Only {{ item.product.stock }} Left!</span>
+        {% endif %}
+      </div>
 
-    {% endif %}
-
-    <a href="{% url 'remove_wishlist' item.product.id %}" class="remove-btn">
-        Remove
-    </a>
-
+      <div class="pc-body">
+        <div class="pc-brand">{{ item.product.category.name }}</div>
+        <div class="pc-name">{{ item.product.name }}</div>
+        <div class="pc-price-row">
+          <span class="pc-price">₹{{ item.product.price }}</span>
+          {% if item.product.stock > 0 %}
+          <span class="in-stock-badge">In Stock</span>
+          {% else %}
+          <span style="font-size:11px;color:var(--accent);font-weight:600;">Out of Stock</span>
+          {% endif %}
         </div>
 
+        <div class="product-card-actions">
+          {% if item.product.stock > 0 %}
+          <button class="btn btn-dark btn-sm add-to-cart-btn" data-id="{{ item.product.id }}" id="wish-cart-{{ item.product.id }}" style="justify-content:center; width:100%;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            Add to Cart
+          </button>
+          {% else %}
+          <span class="btn btn-dark btn-sm" style="opacity:0.4;cursor:not-allowed;justify-content:center;width:100%;">Out of Stock</span>
+          {% endif %}
+          <a href="{% url 'remove_wishlist' item.product.id %}" class="remove-wish-btn" id="wish-remove-{{ item.product.id }}" title="Remove from wishlist">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+          </a>
         </div>
-
-        {% empty %}
-
-        <p class="empty">No products in wishlist</p>
-
-        {% endfor %}
+      </div>
 
     </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="wish-empty">
+    <div class="empty-icon">❤️</div>
+    <h2>Your wishlist is empty</h2>
+    <p>Save your favourite items here for later. Start exploring our collection!</p>
+    <a href="{% url 'shop' %}" class="btn btn-accent" id="explore-wish-btn">Explore Collection →</a>
+  </div>
+  {% endif %}
 
 </div>
+
+<style>
+.wishlist-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 64px 24px;
+}
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 30px;
+}
+.in-stock-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green);
+  background: var(--green-light);
+  border: 1px solid rgba(var(--green), 0.1);
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+.product-card-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  margin-top: auto;
+}
+.remove-wish-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: var(--t);
+  flex-shrink: 0;
+}
+.remove-wish-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.wish-empty {
+  text-align: center;
+  padding: 100px 20px;
+}
+.empty-icon { font-size: 64px; margin-bottom: 20px; filter: drop-shadow(0 4px 10px var(--accent-glow)); }
+.wish-empty h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; font-family: var(--font-serif); }
+.wish-empty p { color: var(--text-secondary); max-width: 400px; margin: 0 auto 32px; font-size: 16px; }
+</style>
 
 {% endblock %}

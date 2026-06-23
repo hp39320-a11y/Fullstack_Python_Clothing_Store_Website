@@ -1,68 +1,98 @@
 {% extends "base.html" %}
 {% load static %}
-
-{% block title %}My Cart | Clothing{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/cart.css' %}">
-{% endblock %}
+{% block title %}My Cart | UrbanWear{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/cart.css' %}">{% endblock %}
 
 {% block content %}
+<div class="page-hero">
+  <span class="section-label">Shopping Bag</span>
+  <h1>My Cart</h1>
+  <p>{% if cart_items %}{{ cart_items|length }} item{{ cart_items|length|pluralize }} in your bag{% else %}Your cart is empty{% endif %}</p>
+</div>
 
-<h2 class="cart-title">My Cart</h2>
-
-{% if cart_items %}
-
-<div class="cart-container">
+<div class="cart-page">
+  {% if cart_items %}
+  <div class="cart-items-col">
 
     {% for item in cart_items %}
-    <div class="cart-item">
-
-        <!-- IMAGE -->
-        <div class="cart-img-box">
-            {% if item.product.image %}
-                <img src="{{ item.product.image.url }}">
-            {% else %}
-                <img src="https://via.placeholder.com/120">
-            {% endif %}
-        </div>
-
-        <!-- DETAILS -->
-        <div class="cart-details">
-
-            <h3>{{ item.product.name }}</h3>
-            <p>Size: {{ item.size }}</p>
-
-            <p class="price">₹{{ item.product.price }}</p>
-
-            <!-- QUANTITY -->
-            <div class="quantity-box">
-                <a href="{% url 'cart_decrease_quantity' item.product.id %}">-</a>
-                <span>{{ item.quantity }}</span>
-                <a href="{% url 'cart_increase_quantity' item.product.id %}">+</a>
+    <div class="cart-row" id="cart-row-{{ item.product.id }}">
+      <a href="{% url 'product_detail' item.product.id %}" class="cart-row-img">
+        {% if item.product.image %}
+        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
+        {% else %}
+        <div class="img-ph">👗</div>
+        {% endif %}
+      </a>
+      <div class="cart-row-body">
+        <div class="cart-row-top">
+          <div>
+            <div class="cart-row-brand">{{ item.product.category.name }}</div>
+            <a href="{% url 'product_detail' item.product.id %}" class="cart-row-name">{{ item.product.name }}</a>
+            <div class="cart-row-tags">
+              {% if item.size %}<span class="tag-pill">Size: {{ item.size }}</span>{% endif %}
+              <span class="tag-pill">{{ item.product.category.name }}</span>
             </div>
-
-            <p class="total">Total: ₹{{ item.total_price }}</p>
-
-            <a href="{% url 'remove_from_cart' item.product.id %}" class="remove-btn">
-                Remove
-            </a>
-
+          </div>
+          <a href="{% url 'remove_from_cart' item.product.id %}" class="cart-remove-btn" id="cart-remove-{{ item.product.id }}" title="Remove">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
+            Remove
+          </a>
         </div>
-
+        <div class="cart-row-bottom">
+          <div class="cart-qty-bar">
+            <a href="{% url 'cart_decrease_quantity' item.product.id %}" class="qty-btn" id="cart-dec-{{ item.product.id }}" aria-label="Decrease">−</a>
+            <span class="qty-num">{{ item.quantity }}</span>
+            <a href="{% url 'cart_increase_quantity' item.product.id %}" class="qty-btn" id="cart-inc-{{ item.product.id }}" aria-label="Increase">+</a>
+          </div>
+          <div class="cart-price-stack">
+            <span class="cart-unit-price">₹{{ item.product.price }} × {{ item.quantity }}</span>
+            <span class="cart-item-total">₹{{ item.total_price }}</span>
+          </div>
+        </div>
+      </div>
     </div>
     {% endfor %}
 
+  </div>
+
+  <aside class="cart-summary-col">
+    <div class="cart-summary-box">
+      <h3 class="summary-heading">Price Details</h3>
+      <div class="summary-rows">
+        <div class="summary-row"><span>Price ({{ cart_items|length }} items)</span><span>₹{{ total }}</span></div>
+        <div class="summary-row"><span>Delivery</span><span class="free-label">{% if total >= 999 %}FREE{% else %}₹79{% endif %}</span></div>
+        <div class="summary-row"><span>Platform Fee</span><span>₹0</span></div>
+      </div>
+      <div class="summary-total-row">
+        <span>Total Amount</span>
+        <span>₹{{ total }}</span>
+      </div>
+      {% if total < 999 %}
+      <div class="free-ship-note">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        Add ₹{{ 999|add:"-0" }} worth more for FREE delivery
+      </div>
+      {% endif %}
+      <a href="{% url 'checkout' %}" class="btn btn-accent btn-full btn-lg" id="cart-checkout-btn" style="margin-top:20px">
+        Proceed to Checkout →
+      </a>
+      <a href="{% url 'shop' %}" class="continue-shop-link">← Continue Shopping</a>
+    </div>
+
+    <div class="cart-trust-row">
+      <div class="cart-trust-item">🔒 Secure Payment</div>
+      <div class="cart-trust-item">✅ Genuine Products</div>
+      <div class="cart-trust-item">🔄 Easy Returns</div>
+    </div>
+  </aside>
+
+  {% else %}
+  <div class="cart-empty-state">
+    <div style="font-size:80px;margin-bottom:20px">🛒</div>
+    <h2>Your cart is empty!</h2>
+    <p>Looks like you haven't added anything to your cart yet. Go and explore our amazing collection.</p>
+    <a href="{% url 'shop' %}" class="btn btn-dark btn-lg" id="cart-explore-btn" style="margin-top:24px">Explore Products →</a>
+  </div>
+  {% endif %}
 </div>
-
-<!-- SUMMARY -->
-<div class="cart-summary">
-    <h3>Total: ₹{{ total }}</h3>
-    <a href="{% url 'checkout' %}" class="checkout-btn">Proceed to Checkout</a>
-</div>
-
-{% else %}
-<p class="empty">No products in cart</p>
-{% endif %}
-
 {% endblock %}
