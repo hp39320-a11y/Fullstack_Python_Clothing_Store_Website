@@ -1,0 +1,68 @@
+========================================================================
+             URBANWEAR CLOTHING STORE - PROJECT OVERVIEW
+========================================================================
+
+1. ABOUT THE PROJECT
+---------------------
+UrbanWear is a premium, fully-functional e-commerce web application
+built for selling clothing and fashion apparel. It consists of two major
+components:
+  * Public Storefront: A modern customer-facing website where users can
+    browse products, add items to a shopping cart or wishlist, apply coupon
+    codes, and securely make purchases.
+  * Custom Admin Dashboard: An internal business management portal where
+    store owners can add/edit products, manage stock, view incoming orders,
+    track customer queries, and create discount coupons.
+
+2. LANGUAGES USED
+------------------
+  * Python (Backend Logic)
+  * HTML5 (Page Structure)
+  * CSS3 (Styling & Layout - Glassmorphic design)
+  * JavaScript (Frontend Interactivity - AJAX)
+  * SQL (Database Queries via Django ORM)
+
+3. TOOLS, FRAMEWORKS & LIBRARIES USED
+--------------------------------------
+  * Django Framework: Web framework used for the backend architecture.
+  * SQLite: Embedded database used to store products, categories, orders,
+    and user information.
+  * Razorpay SDK: Payment gateway library integrated for online card and
+    UPI payments.
+  * WhiteNoise: Library used to serve, compress, and cache static files
+    directly in a production environment.
+  * Gunicorn: WSGI server used for running the Python web application on
+    the cloud.
+  * Pip: Package manager used to install dependencies listed in
+    requirements.txt.
+  * Git & GitHub: Version control system and hosting service used to push
+    and track code changes.
+  * Render: Cloud hosting platform where the application is deployed
+    live.
+
+4. HOW IT WORKS (ARCHITECTURE & FLOW)
+--------------------------------------
+The system utilizes a Model-View-Template (MVT) architecture typical
+of Django projects:
+
+A. Database Layer (Model)
+   - Product, Category, Subcategory, Cart, Order, Contact, and Coupon models
+     are defined in Django's ORM, mapping automatically to SQLite database tables.
+
+B. Backend Controller (View)
+   - The view functions process business logic (e.g. authenticating users,
+     calculating totals, checking coupon codes, creating Razorpay payment requests).
+   - Environment variables are securely loaded using a custom env loader
+     so that no passwords or API keys are exposed.
+
+C. User Interface (Template & Static)
+   - Storefront pages render with CSS variables allowing global style adjustments.
+   - When a user performs actions like "Add to Cart" or "Add to Wishlist",
+     JavaScript sends background requests (AJAX) to backend views, updating the
+     counter without reloading the entire page.
+
+D. Deployment Execution
+   - During cloud deployment, the build command runs database migrations
+     (`manage.py migrate`) and collects static files (`manage.py collectstatic`).
+   - The server is launched using Gunicorn, which acts as the entry point
+     to route internet traffic to Django's WSGI application.
