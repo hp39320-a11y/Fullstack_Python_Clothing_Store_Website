@@ -28,6 +28,9 @@ def home(request):
     return render(request, 'index.html')
 
 def register(request):
+    """
+    View to register a new customer account using RegisterForm.
+    """
 
     if request.method == "POST":
         form = RegisterForm(request.POST)
