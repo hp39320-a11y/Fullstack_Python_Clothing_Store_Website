@@ -84,6 +84,9 @@ STATUS_CHOICES = (
 )
 
 class Address(models.Model):
+    """
+    Model representing a shipping address saved by the customer for checkout.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15)
