@@ -1,6 +1,10 @@
 from django.shortcuts import redirect
 
 class RoleBasedAccessMiddleware:
+    """
+    Middleware to enforce role-based access control, preventing non-staff
+    authenticated users from accessing administrative URL patterns.
+    """
 
     def __init__(self, get_response):
         self.get_response = get_response
