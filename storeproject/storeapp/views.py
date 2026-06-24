@@ -91,6 +91,9 @@ def index(request):
 
 
 def category_view(request, id):
+    """
+    View to render all subcategories under a specific parent category ID.
+    """
 
     category = get_object_or_404(Cateogry, id=id)
 
