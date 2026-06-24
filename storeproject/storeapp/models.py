@@ -13,6 +13,9 @@ class Cateogry(models.Model):
         return self.name
     
 class Subcategory(models.Model):
+    """
+    Model representing a subcategory under a parent category (e.g. T-shirts under Men's).
+    """
     category=models.ForeignKey(Cateogry,on_delete=models.CASCADE)
     name=models.CharField(max_length=100)
     image = models.ImageField(upload_to='subcategory/', null=True, blank=True)
