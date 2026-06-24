@@ -151,6 +151,9 @@ class Contact(models.Model):
         return self.name
 
 class Coupon(models.Model):
+    """
+    Model representing active discount coupons that can be applied at checkout.
+    """
     code = models.CharField(max_length=20, unique=True)
     discount = models.IntegerField(help_text="Percentage (e.g. 10 for 10%)")
     active = models.BooleanField(default=True)
