@@ -446,6 +446,7 @@ def contact(request):
             message=message
         )
 
+        messages.success(request, "Thank you! Your message has been sent successfully.")
         return redirect("index")
 
     return render(request, "contact.html")
