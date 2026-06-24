@@ -45,6 +45,9 @@ def register(request):
     return render(request,'register.html',{'form':form})
 
 def user_login(request):
+    """
+    View to log in users while preventing admin users from logging in via storefront.
+    """
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
 
