@@ -126,6 +126,9 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    """
+    Model representing a specific product line item purchased within an order.
+    """
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
     quantity = models.IntegerField()
