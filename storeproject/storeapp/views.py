@@ -18,6 +18,10 @@ from django.http import HttpResponseForbidden
 
 
 def home(request):
+    """
+    View to redirect administrative accounts to admin panel,
+    or render index.html for general storefront users.
+    """
     if request.user.is_authenticated and request.user.is_staff:
         return redirect('/admin/')
 
