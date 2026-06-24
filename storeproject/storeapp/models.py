@@ -139,6 +139,9 @@ class OrderItem(models.Model):
         return f"Order {self.id}"
 
 class Contact(models.Model):
+    """
+    Model representing customer messages and feedback submitted via the Contact Us form.
+    """
     name = models.CharField(max_length=100)
     email = models.EmailField()
     message = models.TextField()
