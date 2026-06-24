@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+# Main URL routing configurations for the public storefront views.
 urlpatterns = [
 
     # HOME
