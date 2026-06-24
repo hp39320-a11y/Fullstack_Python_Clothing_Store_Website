@@ -63,6 +63,9 @@ class Cart(models.Model):
 
 
 class Wishlist(models.Model):
+    """
+    Model representing a product saved in the user's personal wishlist.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
     added_at = models.DateTimeField(auto_now_add=True)
