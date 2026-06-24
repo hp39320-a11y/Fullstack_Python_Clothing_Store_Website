@@ -79,6 +79,9 @@ def user_logout(request):
     return redirect('index')
 
 def index(request):
+    """
+    View to display categories and a subset of featured products on the homepage.
+    """
     categories = Cateogry.objects.all() 
     products = Products.objects.all()[:12]
     cart_count = 0
