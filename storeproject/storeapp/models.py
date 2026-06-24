@@ -27,6 +27,9 @@ class Subcategory(models.Model):
         return f"{self.category.name} - {self.name}"
 
 class Products(models.Model):
+    """
+    Model representing an individual clothing item/product with stock management.
+    """
     category = models.ForeignKey(Cateogry, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
