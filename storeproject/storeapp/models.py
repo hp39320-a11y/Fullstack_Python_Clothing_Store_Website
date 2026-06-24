@@ -49,6 +49,9 @@ class Products(models.Model):
         return self.name
     
 class Cart(models.Model):
+    """
+    Model representing an item added to the user's shopping cart.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Products, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
