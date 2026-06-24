@@ -100,6 +100,9 @@ class Address(models.Model):
         return self.full_name
 
 class Order(models.Model):
+    """
+    Model representing a customer order containing items and payment status.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
