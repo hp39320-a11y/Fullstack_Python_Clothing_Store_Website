@@ -3,6 +3,9 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class Cateogry(models.Model):
+    """
+    Model representing a parent product category (e.g. Men's wear, Women's wear).
+    """
     name=models.CharField(max_length=100)
     created_at=models.DateTimeField(auto_now_add=True)
 
