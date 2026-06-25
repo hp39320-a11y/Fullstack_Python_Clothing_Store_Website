@@ -22,10 +22,12 @@ class SubcategoryAdmin(admin.ModelAdmin):
 @admin.register(Products)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'subcategory', 'price', 'stock', 'created_at')
+    list_editable = ('price', 'stock')
     readonly_fields = ('created_at',)
     fields = ('name', 'category', 'subcategory', 'price', 'stock', 'image', 'description', 'sizes')
-    search_fields = ('name',)
-    list_filter = ('category', 'subcategory')
+    search_fields = ('name', 'category__name', 'subcategory__name')
+    list_filter = ('category', 'subcategory', 'created_at')
+    list_per_page = 20
 
 
 
