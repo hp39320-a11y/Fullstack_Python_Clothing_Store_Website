@@ -64,6 +64,7 @@
           <div class="auth-field">
             <label for="{{ form.first_name.id_for_label }}">First Name</label>
             <div class="auth-input-wrap">
+              <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               {{ form.first_name }}
             </div>
             {% if form.first_name.errors %}<div class="field-err">{{ form.first_name.errors.0 }}</div>{% endif %}
@@ -71,6 +72,7 @@
           <div class="auth-field">
             <label for="{{ form.last_name.id_for_label }}">Last Name</label>
             <div class="auth-input-wrap">
+              <svg class="auth-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               {{ form.last_name }}
             </div>
             {% if form.last_name.errors %}<div class="field-err">{{ form.last_name.errors.0 }}</div>{% endif %}
