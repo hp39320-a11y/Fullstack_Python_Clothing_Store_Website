@@ -47,6 +47,13 @@ class Products(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_in_stock(self):
+        """
+        Check if the product is currently in stock.
+        """
+        return self.stock > 0
     
 class Cart(models.Model):
     """
