@@ -59,4 +59,40 @@ class CouponModelTest(TestCase):
         self.assertTrue(self.coupon.active)
         self.assertEqual(str(self.coupon), "SUMMER20")
 
+class CartCountContextProcessorTest(TestCase):
+    def setUp(self):
+        from django.test import RequestFactory
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(username="cartuser", password="password")
+        self.category = Cateogry.objects.create(name="Men's Wear")
+        self.subcategory = Subcategory.objects.create(category=self.category, name="T-Shirts")
+        self.product = Products.objects.create(
+            category=self.category,
+            subcategory=self.subcategory,
+            name="Classic T-Shirt",
+            price=499.00,
+            stock=10,
+            image="products/tshirt.jpg"
+        )
+
+    def test_cart_count_anonymous(self):
+        from django.contrib.auth.models import AnonymousUser
+        from .context_processors import cart_count
+        request = self.factory.get('/')
+        request.user = AnonymousUser()
+        result = cart_count(request)
+        self.assertEqual(result['cart_count'], 0)
+
+    def test_cart_count_authenticated(self):
+        from .context_processors import cart_count
+        request = self.factory.get('/')
+        request.user = self.user
+        result = cart_count(request)
+        self.assertEqual(result['cart_count'], 0)
+
+        Cart.objects.create(user=self.user, product=self.product, quantity=1)
+        result = cart_count(request)
+        self.assertEqual(result['cart_count'], 1)
+
+
 
