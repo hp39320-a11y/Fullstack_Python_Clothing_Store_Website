@@ -5,13 +5,18 @@ from .models import *
 
 @admin.register(Cateogry)
 class CateogryAdmin(admin.ModelAdmin):
-    list_display =('name','created_at',)
-    readonly_fields =('created_at',)
+    list_display = ('name', 'created_at')
+    readonly_fields = ('created_at',)
+    search_fields = ('name',)
+    ordering = ('name',)
 
 @admin.register(Subcategory)
 class SubcategoryAdmin(admin.ModelAdmin):
-    list_display =('name','created_at',)
-    readonly_fields =('created_at',)
+    list_display = ('name', 'category', 'created_at')
+    readonly_fields = ('created_at',)
+    list_filter = ('category',)
+    search_fields = ('name', 'category__name')
+    ordering = ('category', 'name')
     
 
 @admin.register(Products)
