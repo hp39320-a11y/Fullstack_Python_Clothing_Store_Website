@@ -131,6 +131,13 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def is_paid(self):
+        """
+        Check if the order payment was completed successfully.
+        """
+        return self.payment_status == 'Success'
+
 
 class OrderItem(models.Model):
     """
