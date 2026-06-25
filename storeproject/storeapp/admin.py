@@ -60,6 +60,19 @@ class CouponAdmin(admin.ModelAdmin):
 class AddressAdmin(admin.ModelAdmin):
     list_display = ['user', 'full_name', 'phone', 'address_line', 'city', 'state','pincode']
     readonly_fields = ('created_at',)
+
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'quantity', 'size', 'added_at')
+    list_filter = ('added_at', 'size')
+    search_fields = ('user__username', 'product__name')
+
+@admin.register(Wishlist)
+class WishlistAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'added_at')
+    list_filter = ('added_at',)
+    search_fields = ('user__username', 'product__name')
+
     
 
 
