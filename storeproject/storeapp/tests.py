@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
-from .models import Cateogry, Subcategory, Products, Cart
+from django.utils import timezone
+from datetime import timedelta
+from .models import Cateogry, Subcategory, Products, Cart, Coupon
 
 class CategorySubcategoryModelTest(TestCase):
     def setUp(self):
@@ -39,4 +41,22 @@ class CartModelTest(TestCase):
 
     def test_cart_total_price(self):
         self.assertEqual(self.cart_item.total_price(), 998.00)
+
+class CouponModelTest(TestCase):
+    def setUp(self):
+        now = timezone.now()
+        self.coupon = Coupon.objects.create(
+            code="SUMMER20",
+            discount=20,
+            active=True,
+            valid_from=now - timedelta(days=1),
+            valid_to=now + timedelta(days=5)
+        )
+
+    def test_coupon_creation(self):
+        self.assertEqual(self.coupon.code, "SUMMER20")
+        self.assertEqual(self.coupon.discount, 20)
+        self.assertTrue(self.coupon.active)
+        self.assertEqual(str(self.coupon), "SUMMER20")
+
 
