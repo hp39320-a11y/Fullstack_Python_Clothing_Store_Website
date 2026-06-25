@@ -385,18 +385,27 @@ def order_history(request):
 
 @login_required
 def add_to_wishlist(request,product_id):
+    """
+    Saves a product item to the authenticated user's wishlist.
+    """
     product=get_object_or_404(Products,id=product_id)
     item, created = Wishlist.objects.get_or_create(user=request.user,product=product)
     return redirect('wishlist')
 
 @login_required
 def wishlist(request):
+    """
+    Renders the wishlist page showing all saved items for the user.
+    """
     items=Wishlist.objects.filter(user=request.user)
     categories=Cateogry.objects.all()
     return render(request,'wishlist.html',{'items':items,'categories':categories})
 
 @login_required
 def remove_wishlist(request,product_id):
+    """
+    Deletes a product item from the authenticated user's wishlist.
+    """
     Wishlist.objects.filter(user=request.user,product_id=product_id).delete()
     return redirect('wishlist')
 
