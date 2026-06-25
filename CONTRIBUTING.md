@@ -8,3 +8,6 @@ Thank you for your interest in contributing to UrbanWear!
 3. Create a feature branch.
 4. Make sure your changes follow Django best practices.
 5. Commit and open a Pull Request.
+
+## Contributors
+* [hp39320-a11y](https://github.com/hp39320-a11y) — Lead Developer & Maintainer
