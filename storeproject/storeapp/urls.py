@@ -1,7 +1,11 @@
 from django.urls import path
 from . import views
 
-# Main URL routing configurations for the public storefront views.
+"""
+URL Configuration for the storeapp storefront.
+Defines path patterns for index, authentication, product catalogue browsing,
+shopping cart mutations, checkout payment verification, order history, and contact page.
+"""
 urlpatterns = [
 
     # HOME
