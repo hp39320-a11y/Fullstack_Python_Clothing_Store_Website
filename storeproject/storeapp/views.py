@@ -149,7 +149,9 @@ def add_to_cart(request, product_id):
 
 @login_required
 def cart_detail(request):
-
+    """
+    Renders the cart details page showing items, quantities, and subtotal.
+    """
     cart_items = Cart.objects.filter(user=request.user)
 
     total = sum(item.total_price() for item in cart_items)
@@ -216,6 +218,10 @@ def cart_decrease_quantity(request, product_id):
 
 @login_required
 def checkout(request):
+    """
+    Handles checkout logic including address selection, coupon code application,
+    order placement, and payment integration (COD or Razorpay).
+    """
     cart_items = Cart.objects.filter(user=request.user)
     addresses = Address.objects.filter(user=request.user)
 
