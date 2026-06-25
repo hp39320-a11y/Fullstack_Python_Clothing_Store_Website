@@ -48,6 +48,9 @@ def admin_logout(request):
 @login_required
 @admin_required
 def dashboard(request):
+    """
+    Renders the administrative dashboard showing order, product, and user count statistics.
+    """
     return render(request, 'adminpanel/dashboard.html', {
         'orders': Order.objects.count(),
         'products': Products.objects.count(),
