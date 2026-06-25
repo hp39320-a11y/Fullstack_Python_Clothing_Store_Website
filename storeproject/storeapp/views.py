@@ -1,7 +1,10 @@
+import logging
 from decimal import Decimal
 from django.utils import timezone as dj_timezone
 from django.contrib import messages
 from django.shortcuts import redirect, render,get_object_or_404
+
+logger = logging.getLogger(__name__)
 from .models import *
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth import login,logout
@@ -322,6 +325,7 @@ def checkout(request):
                             "key": settings.RAZORPAY_KEY_ID
                         })
                     except Exception as e:
+                        logger.exception("Razorpay order creation failed: %s", e)
                         order.delete()
                         error = "Payment gateway authentication failed. Please select Cash on Delivery or configure valid credentials."
 
