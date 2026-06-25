@@ -94,5 +94,33 @@ class CartCountContextProcessorTest(TestCase):
         result = cart_count(request)
         self.assertEqual(result['cart_count'], 1)
 
+class RoleBasedAccessMiddlewareTest(TestCase):
+    def setUp(self):
+        from django.test import RequestFactory
+        from django.http import HttpResponse
+        self.factory = RequestFactory()
+        self.get_response = lambda req: HttpResponse("success")
+        self.user = User.objects.create_user(username="normaluser", password="password")
+        self.staff_user = User.objects.create_user(username="staffuser", password="password", is_staff=True)
+
+    def test_middleware_blocks_non_staff_from_admin(self):
+        from .middleware import RoleBasedAccessMiddleware
+        middleware = RoleBasedAccessMiddleware(self.get_response)
+        request = self.factory.get('/admin-panel/')
+        request.user = self.user
+        response = middleware(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/')
+
+    def test_middleware_allows_staff_to_admin(self):
+        from .middleware import RoleBasedAccessMiddleware
+        middleware = RoleBasedAccessMiddleware(self.get_response)
+        request = self.factory.get('/admin-panel/')
+        request.user = self.staff_user
+        response = middleware(request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"success")
+
+
 
 
