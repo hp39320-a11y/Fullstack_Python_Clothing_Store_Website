@@ -144,6 +144,13 @@ class Order(models.Model):
         """
         return self.payment_status == 'Success'
 
+    @property
+    def get_total_items(self):
+        """
+        Return the total quantity of all items within this order.
+        """
+        return sum(item.quantity for item in self.orderitem_set.all())
+
 
 class OrderItem(models.Model):
     """
