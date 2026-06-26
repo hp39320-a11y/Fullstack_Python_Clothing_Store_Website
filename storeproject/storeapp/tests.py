@@ -145,6 +145,12 @@ class AddressModelTest(TestCase):
         self.assertEqual(self.address.pincode, "600001")
         self.assertEqual(str(self.address), "John Doe")
 
+    def test_get_full_address(self):
+        self.assertEqual(
+            self.address.get_full_address(),
+            "John Doe, 123 Street Name, Chennai, Tamil Nadu - 600001"
+        )
+
 
 class WishlistModelTest(TestCase):
     def setUp(self):
