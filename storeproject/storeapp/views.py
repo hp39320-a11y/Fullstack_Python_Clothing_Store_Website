@@ -1,22 +1,23 @@
+import json
 import logging
 from decimal import Decimal
-from django.utils import timezone as dj_timezone
+
+import razorpay
+from django.conf import settings
 from django.contrib import messages
-from django.shortcuts import redirect, render,get_object_or_404
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.core.paginator import Paginator
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone as dj_timezone
+from django.views.decorators.csrf import csrf_exempt
+
+from .forms import RegisterForm
+from .models import *
 
 logger = logging.getLogger(__name__)
-from .models import *
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from django.contrib.auth import login,logout
-from django.contrib.auth.decorators import login_required
-from .forms import RegisterForm
-from django.views.decorators.csrf import csrf_exempt
-import razorpay
-from django.http import HttpResponse, JsonResponse
-from django.conf import settings
-import json
-from django.core.paginator import Paginator
-from django.http import HttpResponseForbidden
 
 
 
@@ -409,7 +410,6 @@ def remove_wishlist(request,product_id):
     Wishlist.objects.filter(user=request.user,product_id=product_id).delete()
     return redirect('wishlist')
 
-from django.contrib import messages
 
 @login_required
 def cancel_order(request, order_id):
@@ -506,7 +506,6 @@ def search(request):
     }
 
     return render(request, 'search.html', context)
-from django.core.paginator import Paginator
 
 def shop(request):
     category_id = request.GET.get('category')
@@ -567,7 +566,6 @@ def checkout_decrease(request, product_id):
             cart_item.delete()
 
     return redirect('checkout')  
-from django.views.decorators.csrf import csrf_exempt
 
 def payment_success(request):
     if request.method == "POST":
