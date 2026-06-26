@@ -568,23 +568,29 @@ def checkout_decrease(request, product_id):
     return redirect('checkout')  
 
 def payment_success(request):
+    """
+    Handle the successful Razorpay payment callback.
+    Updates the order status, reduces product stock levels,
+    clears the user's cart, and redirects to the order success page.
+    """
     if request.method == "POST":
         order_id = request.POST.get("order_id")
         payment_id = request.POST.get("payment_id")
 
+        # Retrieve and update the order with payment details
         order = Order.objects.get(id=order_id)
         order.razorpay_payment_id = payment_id
         order.payment_status = "Paid"
         order.status = "Processing"
         order.save()
 
-        # Reduce stock
+        # Reduce stock for each purchased product item
         items = OrderItem.objects.filter(order=order)
         for item in items:
             item.product.stock -= item.quantity
             item.product.save()
 
-        # Clear cart
+        # Clear the user's shopping cart after successful checkout
         Cart.objects.filter(user=order.user).delete()
 
         return redirect('order_success', order_id=order.id)
