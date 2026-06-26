@@ -66,3 +66,12 @@ D. Deployment Execution
      (`manage.py migrate`) and collects static files (`manage.py collectstatic`).
    - The server is launched using Gunicorn, which acts as the entry point
      to route internet traffic to Django's WSGI application.
+
+5. TESTING & EXTENSIONS
+-----------------------
+  * Unit Testing: The codebase includes a suite of automated unit tests covering
+    model verification (Address, Wishlist, Order, OrderItem, Contact, Coupon),
+    middleware, and context processors. Run them using:
+    `python storeproject/manage.py test`
+  * Custom Template Filters: Includes custom template tags (e.g., `currency` filter)
+    to format decimal values with the Indian Rupee symbol (₹) and proper thousand separators.
