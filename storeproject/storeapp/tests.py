@@ -224,6 +224,9 @@ class OrderModelTest(TestCase):
         self.assertEqual(self.order_item.price, 499.00)
         self.assertEqual(str(self.order_item), f"Order {self.order.id}")
 
+    def test_get_total_items(self):
+        self.assertEqual(self.order.get_total_items, 2)
+
 
 class ContactModelTest(TestCase):
     def setUp(self):
