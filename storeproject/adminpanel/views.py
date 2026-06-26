@@ -1,10 +1,17 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from storeapp.models import Products, Cateogry, Subcategory, Order,Contact,Coupon
 from django.contrib.auth.models import User
 from django.db.models import Q
-from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, redirect, render
+
+from storeapp.models import (
+    Contact,
+    Coupon,
+    Order,
+    Products,
+    Cateogry,
+    Subcategory,
+)
 
 
 def admin_required(view_func):
