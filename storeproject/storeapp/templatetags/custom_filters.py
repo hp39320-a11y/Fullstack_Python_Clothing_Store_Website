@@ -11,5 +11,5 @@ def currency(value):
     try:
         val = Decimal(str(value))
         return f"₹{val:,.2f}"
-    except (ValueError, TypeError):
+    except Exception:
         return value

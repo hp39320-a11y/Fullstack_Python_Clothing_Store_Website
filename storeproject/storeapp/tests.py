@@ -263,3 +263,16 @@ class ContactModelTest(TestCase):
         self.assertEqual(self.contact.email, "alice@example.com")
         self.assertEqual(self.contact.message, "Hello, I have a query about shipping.")
         self.assertEqual(str(self.contact), "Alice Smith")
+
+
+class CurrencyFilterTest(TestCase):
+    def test_currency_filter_with_valid_numbers(self):
+        from .templatetags.custom_filters import currency
+        self.assertEqual(currency(1234.56), "₹1,234.56")
+        self.assertEqual(currency(100), "₹100.00")
+        self.assertEqual(currency("500"), "₹500.00")
+
+    def test_currency_filter_with_invalid_input(self):
+        from .templatetags.custom_filters import currency
+        self.assertEqual(currency("invalid"), "invalid")
+        self.assertEqual(currency(None), None)
