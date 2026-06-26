@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from .models import Cateogry, Subcategory, Products, Cart, Coupon
+from .models import Cateogry, Subcategory, Products, Cart, Coupon, Address
 
 class CategorySubcategoryModelTest(TestCase):
     def setUp(self):
@@ -122,5 +122,25 @@ class RoleBasedAccessMiddlewareTest(TestCase):
         self.assertEqual(response.content, b"success")
 
 
+class AddressModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="addressuser", password="password")
+        self.address = Address.objects.create(
+            user=self.user,
+            full_name="John Doe",
+            phone="1234567890",
+            address_line="123 Street Name",
+            city="Chennai",
+            state="Tamil Nadu",
+            pincode="600001"
+        )
 
-
+    def test_address_creation(self):
+        self.assertEqual(self.address.user, self.user)
+        self.assertEqual(self.address.full_name, "John Doe")
+        self.assertEqual(self.address.phone, "1234567890")
+        self.assertEqual(self.address.address_line, "123 Street Name")
+        self.assertEqual(self.address.city, "Chennai")
+        self.assertEqual(self.address.state, "Tamil Nadu")
+        self.assertEqual(self.address.pincode, "600001")
+        self.assertEqual(str(self.address), "John Doe")
