@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from .models import Cateogry, Subcategory, Products, Cart, Coupon, Address
+from .models import Cateogry, Subcategory, Products, Cart, Coupon, Address, Wishlist
 
 class CategorySubcategoryModelTest(TestCase):
     def setUp(self):
@@ -144,3 +144,24 @@ class AddressModelTest(TestCase):
         self.assertEqual(self.address.state, "Tamil Nadu")
         self.assertEqual(self.address.pincode, "600001")
         self.assertEqual(str(self.address), "John Doe")
+
+
+class WishlistModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="wishlistuser", password="password")
+        self.category = Cateogry.objects.create(name="Men's Wear")
+        self.subcategory = Subcategory.objects.create(category=self.category, name="T-Shirts")
+        self.product = Products.objects.create(
+            category=self.category,
+            subcategory=self.subcategory,
+            name="Classic T-Shirt",
+            price=499.00,
+            stock=10,
+            image="products/tshirt.jpg"
+        )
+        self.wishlist_item = Wishlist.objects.create(user=self.user, product=self.product)
+
+    def test_wishlist_creation(self):
+        self.assertEqual(self.wishlist_item.user, self.user)
+        self.assertEqual(self.wishlist_item.product, self.product)
+        self.assertEqual(str(self.wishlist_item), "Classic T-Shirt")
