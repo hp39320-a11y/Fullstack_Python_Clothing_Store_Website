@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from .models import Cateogry, Subcategory, Products, Cart, Coupon, Address, Wishlist, Order, OrderItem
+from .models import Cateogry, Subcategory, Products, Cart, Coupon, Address, Wishlist, Order, OrderItem, Contact
 
 class CategorySubcategoryModelTest(TestCase):
     def setUp(self):
@@ -217,3 +217,18 @@ class OrderModelTest(TestCase):
         self.assertEqual(self.order_item.quantity, 2)
         self.assertEqual(self.order_item.price, 499.00)
         self.assertEqual(str(self.order_item), f"Order {self.order.id}")
+
+
+class ContactModelTest(TestCase):
+    def setUp(self):
+        self.contact = Contact.objects.create(
+            name="Alice Smith",
+            email="alice@example.com",
+            message="Hello, I have a query about shipping."
+        )
+
+    def test_contact_creation(self):
+        self.assertEqual(self.contact.name, "Alice Smith")
+        self.assertEqual(self.contact.email, "alice@example.com")
+        self.assertEqual(self.contact.message, "Hello, I have a query about shipping.")
+        self.assertEqual(str(self.contact), "Alice Smith")
