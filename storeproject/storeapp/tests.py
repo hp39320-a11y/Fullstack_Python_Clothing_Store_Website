@@ -59,6 +59,28 @@ class CouponModelTest(TestCase):
         self.assertTrue(self.coupon.active)
         self.assertEqual(str(self.coupon), "SUMMER20")
 
+    def test_coupon_is_valid_active_in_range(self):
+        self.assertTrue(self.coupon.is_valid())
+
+    def test_coupon_is_valid_inactive(self):
+        self.coupon.active = False
+        self.coupon.save()
+        self.assertFalse(self.coupon.is_valid())
+
+    def test_coupon_is_valid_expired(self):
+        now = timezone.now()
+        self.coupon.valid_from = now - timedelta(days=5)
+        self.coupon.valid_to = now - timedelta(days=1)
+        self.coupon.save()
+        self.assertFalse(self.coupon.is_valid())
+
+    def test_coupon_is_valid_future(self):
+        now = timezone.now()
+        self.coupon.valid_from = now + timedelta(days=1)
+        self.coupon.valid_to = now + timedelta(days=5)
+        self.coupon.save()
+        self.assertFalse(self.coupon.is_valid())
+
 class CartCountContextProcessorTest(TestCase):
     def setUp(self):
         from django.test import RequestFactory
