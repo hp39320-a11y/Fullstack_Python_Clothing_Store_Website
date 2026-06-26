@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from .models import Cateogry, Subcategory, Products, Cart, Coupon, Address, Wishlist
+from .models import Cateogry, Subcategory, Products, Cart, Coupon, Address, Wishlist, Order, OrderItem
 
 class CategorySubcategoryModelTest(TestCase):
     def setUp(self):
@@ -165,3 +165,55 @@ class WishlistModelTest(TestCase):
         self.assertEqual(self.wishlist_item.user, self.user)
         self.assertEqual(self.wishlist_item.product, self.product)
         self.assertEqual(str(self.wishlist_item), "Classic T-Shirt")
+
+
+class OrderModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="orderuser", password="password")
+        self.address = Address.objects.create(
+            user=self.user,
+            full_name="Jane Doe",
+            phone="0987654321",
+            address_line="456 Avenue",
+            city="Mumbai",
+            state="Maharashtra",
+            pincode="400001"
+        )
+        self.category = Cateogry.objects.create(name="Men's Wear")
+        self.subcategory = Subcategory.objects.create(category=self.category, name="T-Shirts")
+        self.product = Products.objects.create(
+            category=self.category,
+            subcategory=self.subcategory,
+            name="Classic T-Shirt",
+            price=499.00,
+            stock=10,
+            image="products/tshirt.jpg"
+        )
+        self.order = Order.objects.create(
+            user=self.user,
+            total_amount=998.00,
+            payment_method="UPI",
+            payment_status="Pending",
+            address=self.address
+        )
+        self.order_item = OrderItem.objects.create(
+            order=self.order,
+            product=self.product,
+            quantity=2,
+            price=499.00,
+            size="M"
+        )
+
+    def test_order_creation(self):
+        self.assertEqual(self.order.user, self.user)
+        self.assertEqual(self.order.total_amount, 998.00)
+        self.assertEqual(self.order.payment_method, "UPI")
+        self.assertEqual(self.order.payment_status, "Pending")
+        self.assertFalse(self.order.is_paid)
+
+    def test_order_item_creation(self):
+        self.assertEqual(self.order_item.order, self.order)
+        self.assertEqual(self.order_item.product, self.product)
+        self.assertEqual(self.order_item.quantity, 2)
+        self.assertEqual(self.order_item.price, 499.00)
+        self.assertEqual(str(self.order_item), f"Order {self.order.id}")
