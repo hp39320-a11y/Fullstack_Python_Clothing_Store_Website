@@ -106,6 +106,12 @@ class Address(models.Model):
     def __str__(self):
         return self.full_name
 
+    def get_full_address(self):
+        """
+        Return the complete shipping address as a single formatted string.
+        """
+        return f"{self.full_name}, {self.address_line}, {self.city}, {self.state} - {self.pincode}"
+
 class Order(models.Model):
     """
     Model representing a customer order containing items and payment status.
