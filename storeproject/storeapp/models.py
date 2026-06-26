@@ -189,6 +189,14 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.code
+
+    def is_valid(self):
+        """
+        Check if the coupon is currently active and within its valid date range.
+        """
+        from django.utils import timezone
+        now = timezone.now()
+        return self.active and self.valid_from <= now <= self.valid_to
     
 
 
