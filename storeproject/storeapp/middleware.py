@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 
+
 class RoleBasedAccessMiddleware:
     """
     Middleware to enforce role-based access control, preventing non-staff
@@ -10,8 +11,7 @@ class RoleBasedAccessMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-
-        # ❌ Block normal users from admin
+        # Prevent authenticated non-staff users from accessing administrative urls
         if request.path.startswith('/admin'):
             if request.user.is_authenticated and not request.user.is_staff:
                 return redirect('index')
