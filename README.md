@@ -141,6 +141,19 @@ The local SQLite database (`db.sqlite3`) contains pre-configured categories, pro
 
 ---
 
+## 🧪 Testing the Platform
+
+You can verify the codebase integrity by running Django's automated unit tests:
+
+```bash
+# Run the complete test suite
+python storeproject/manage.py test
+```
+
+This validates model behaviors, middleware configurations, and context processors.
+
+---
+
 ## ☁️ Render Deployment Guide
 
 Follow these steps to deploy this Django application successfully on **Render**:
