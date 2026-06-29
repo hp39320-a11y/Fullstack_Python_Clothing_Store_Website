@@ -43,7 +43,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-t1rih-yl&s*ta1(9gz1@v
 DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 't')
 
 allowed_hosts_raw = os.environ.get('ALLOWED_HOSTS', '')
-ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_raw.split(',') if host.strip()] if allowed_hosts_raw else []
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_raw.split(',') if host.strip()] if allowed_hosts_raw else ['localhost', '127.0.0.1', '.localhost', '.up.railway.app', '.onrender.com']
 
 
 # Application definition
