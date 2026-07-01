@@ -202,3 +202,21 @@ class Coupon(models.Model):
 
     
     
+
+
+class Review(models.Model):
+    """
+    Model representing customer reviews and ratings for products.
+    """
+    product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='reviews')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.PositiveIntegerField(choices=[(i, str(i)) for i in range(1, 6)])
+    title = models.CharField(max_length=100, blank=True)
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('product', 'user')
+
+    def __str__(self):
+        return f"{self.user.username}'s review for {self.product.name}"
