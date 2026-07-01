@@ -191,3 +191,116 @@
   color: var(--text-secondary);
   font-weight: 500;
 }
+
+/* Reviews List & Forms Column */
+.reviews-list-col {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Submit Review Card */
+.review-form-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+}
+
+.review-form-card h3 {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+}
+
+.review-form-el .form-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-form-el label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.review-form-el input[type="text"],
+.review-form-el textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r);
+  color: var(--text-primary);
+  outline: none;
+  font-family: var(--font-sans);
+  transition: border-color 0.2s ease;
+}
+
+.review-form-el input[type="text"]:focus,
+.review-form-el textarea:focus {
+  border-color: var(--text-primary);
+}
+
+.form-group-star {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.star-rating-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.star-rating-select {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+}
+
+.star-rating-select input {
+  display: none;
+}
+
+.star-rating-select label {
+  font-size: 26px;
+  color: var(--border-medium);
+  cursor: pointer;
+  transition: color 0.15s ease;
+  padding: 0 2px;
+}
+
+.star-rating-select label:hover,
+.star-rating-select label:hover ~ label,
+.star-rating-select input:checked ~ label {
+  color: #FFA500;
+}
+
+.review-submitted-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--green-light);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 16px 24px;
+  border-radius: var(--r);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.review-submitted-badge svg {
+  flex-shrink: 0;
+}
