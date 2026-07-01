@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
-from .models import Cateogry, Subcategory, Products, Cart, Coupon, Address, Wishlist, Order, OrderItem, Contact
+from .models import Cateogry, Subcategory, Products, Cart, Coupon, Address, Wishlist, Order, OrderItem, Contact, Review
 
 class CategorySubcategoryModelTest(TestCase):
     def setUp(self):
@@ -276,3 +276,123 @@ class CurrencyFilterTest(TestCase):
         from .templatetags.custom_filters import currency
         self.assertEqual(currency("invalid"), "invalid")
         self.assertEqual(currency(None), None)
+
+
+class ReviewModelAndViewsTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="reviewer", password="password")
+        self.category = Cateogry.objects.create(name="Men's Wear")
+        self.subcategory = Subcategory.objects.create(category=self.category, name="T-Shirts")
+        self.product = Products.objects.create(
+            category=self.category,
+            subcategory=self.subcategory,
+            name="Classic T-Shirt",
+            price=499.00,
+            stock=10,
+            image="products/tshirt.jpg"
+        )
+        self.client.login(username="reviewer", password="password")
+
+    def test_review_creation_and_attributes(self):
+        review = Review.objects.create(
+            product=self.product,
+            user=self.user,
+            rating=5,
+            title="Awesome product",
+            comment="Fits perfectly!"
+        )
+        self.assertEqual(review.product, self.product)
+        self.assertEqual(review.user, self.user)
+        self.assertEqual(review.rating, 5)
+        self.assertEqual(review.title, "Awesome product")
+        self.assertEqual(review.comment, "Fits perfectly!")
+        self.assertEqual(str(review), "reviewer's review for Classic T-Shirt")
+
+    def test_review_is_verified_property(self):
+        review = Review.objects.create(
+            product=self.product,
+            user=self.user,
+            rating=4,
+            title="Good",
+            comment="Nice buy."
+        )
+        # Not verified yet
+        self.assertFalse(review.is_verified)
+
+        # Create address and order
+        address = Address.objects.create(
+            user=self.user,
+            full_name="Reviewer User",
+            phone="1234567890",
+            address_line="Street 1",
+            city="Chennai",
+            state="TN",
+            pincode="600001"
+        )
+        order = Order.objects.create(
+            user=self.user,
+            total_amount=499.00,
+            payment_method="COD",
+            payment_status="Success",
+            address=address
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            quantity=1,
+            price=499.00,
+            size="M"
+        )
+
+        # Now verified since user has purchased product
+        self.assertTrue(review.is_verified)
+
+    def test_product_detail_view_context_with_reviews(self):
+        Review.objects.create(
+            product=self.product,
+            user=self.user,
+            rating=5,
+            title="Great",
+            comment="Love it!"
+        )
+        # Add another user review
+        other_user = User.objects.create_user(username="otheruser", password="password")
+        Review.objects.create(
+            product=self.product,
+            user=other_user,
+            rating=3,
+            title="Average",
+            comment="Okayish"
+        )
+
+        response = self.client.get(f"/product/{self.product.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['avg_rating'], 4.0)
+        self.assertEqual(response.context['reviews'].count(), 2)
+        # 5 star and 3 star are each 50%
+        self.assertEqual(response.context['rating_breakdown'][5], 50)
+        self.assertEqual(response.context['rating_breakdown'][3], 50)
+        self.assertEqual(response.context['rating_breakdown'][4], 0)
+
+    def test_submit_review_post_request(self):
+        # Submit a review post request
+        response = self.client.post(
+            f"/product/{self.product.id}/",
+            {"rating": 5, "title": "Excellent", "comment": "Highly recommended!"}
+        )
+        self.assertRedirects(response, f"/product/{self.product.id}/")
+        
+        # Verify review created in database
+        review = Review.objects.get(product=self.product, user=self.user)
+        self.assertEqual(review.rating, 5)
+        self.assertEqual(review.title, "Excellent")
+        self.assertEqual(review.comment, "Highly recommended!")
+
+        # Try submitting another review for the same product (should be blocked)
+        response2 = self.client.post(
+            f"/product/{self.product.id}/",
+            {"rating": 4, "title": "Good second review", "comment": "Changed mind."}
+        )
+        # The view redirects back to product page but doesn't create a new review
+        self.assertEqual(Review.objects.filter(product=self.product, user=self.user).count(), 1)
+
