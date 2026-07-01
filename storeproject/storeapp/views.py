@@ -472,6 +472,22 @@ def product_detail(request, product_id):
         for i in range(1, 6):
             rating_breakdown[i] = round((rating_breakdown[i] / total_reviews) * 100)
 
+    if request.method == 'POST':
+        if user_review:
+            messages.error(request, "You have already reviewed this product.")
+            return redirect('product_detail', product_id=product.id)
+
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.product = product
+            review.user = request.user
+            review.save()
+            messages.success(request, "Thank you! Your review has been submitted.")
+            return redirect('product_detail', product_id=product.id)
+    else:
+        form = ReviewForm()
+
     context = {
         'product': product,
         'product_sizes': product_sizes,
