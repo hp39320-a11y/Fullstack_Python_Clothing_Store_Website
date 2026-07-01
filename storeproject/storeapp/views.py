@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone as dj_timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from .forms import RegisterForm
+from .forms import RegisterForm, ReviewForm
 from .models import *
 
 logger = logging.getLogger(__name__)
@@ -436,7 +436,38 @@ def product_detail(request, product_id):
     product_sizes = []
     if product.sizes:
         product_sizes = [s.strip() for s in product.sizes.split(',') if s.strip()]
-    return render(request, 'product_detail.html', {'product': product, 'product_sizes': product_sizes})
+
+    reviews = product.reviews.all().order_by('-created_at')
+
+    # Calculate average rating
+    avg_rating = 0
+    if reviews.exists():
+        avg_rating = sum(r.rating for r in reviews) / reviews.count()
+        avg_rating = round(avg_rating, 1)
+
+    # Check if this user bought this product (Verified Purchase indicator)
+    is_verified_buyer = OrderItem.objects.filter(
+        order__user=request.user,
+        order__payment_status='Success',
+        product=product
+    ).exists() or OrderItem.objects.filter(
+        order__user=request.user,
+        order__payment_status='Paid',
+        product=product
+    ).exists() or OrderItem.objects.filter(
+        order__user=request.user,
+        order__status='Delivered',
+        product=product
+    ).exists()
+
+    context = {
+        'product': product,
+        'product_sizes': product_sizes,
+        'reviews': reviews,
+        'avg_rating': avg_rating,
+        'is_verified_buyer': is_verified_buyer,
+    }
+    return render(request, 'product_detail.html', context)
 
 
 @login_required
