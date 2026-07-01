@@ -159,6 +159,55 @@
   </div>
 </div>
 
+<!-- REVIEWS SECTION -->
+<div class="reviews-wrapper">
+  <div class="reviews-header">
+    <h2>Customer Reviews &amp; Ratings</h2>
+  </div>
+
+  <div class="reviews-layout">
+    <!-- Left column: Summary Stats -->
+    <div class="reviews-summary-card">
+      <div class="summary-score-block">
+        <span class="summary-avg-score">{% if avg_rating %}{{ avg_rating }}{% else %}0.0{% endif %}</span>
+        <div class="summary-stars">
+          {% if avg_rating %}
+            {% for i in "12345" %}
+              {% if avg_rating >= forloop.counter %}
+                ★
+              {% else %}
+                ☆
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            ☆☆☆☆☆
+          {% endif %}
+        </div>
+        <span class="summary-count">Based on {{ reviews.count }} review{{ reviews.count|pluralize }}</span>
+      </div>
+      
+      <div class="rating-breakdown-bars">
+        {% for star_val, percentage in rating_breakdown.items reversed %}
+          <div class="breakdown-row">
+            <span class="breakdown-label">{{ star_val }} ★</span>
+            <div class="breakdown-progress-bg">
+              <div class="breakdown-progress-fill" style="width: {{ percentage }}%;"></div>
+            </div>
+            <span class="breakdown-percent">{{ percentage }}%</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right column: Placeholder -->
+    <div class="reviews-list-col">
+      <div class="no-reviews-placeholder">
+        <p>No reviews yet. Be the first to share your thoughts!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 function selectSize(btn) {
   document.querySelectorAll('.pd-size-btn').forEach(b => b.classList.remove('selected'));
