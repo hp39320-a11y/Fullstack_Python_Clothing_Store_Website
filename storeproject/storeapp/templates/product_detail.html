@@ -38,8 +38,21 @@
     <h1 class="pd-title">{{ product.name }}</h1>
 
     <div class="pd-ratings">
-      <span class="rating-stars">★★★★☆</span>
-      <span class="rating-count">(128 ratings)</span>
+      <span class="rating-stars">
+        {% if avg_rating %}
+          {% for i in "12345" %}
+            {% if avg_rating >= forloop.counter %}
+              ★
+            {% else %}
+              ☆
+            {% endif %}
+          {% endfor %}
+          <span class="rating-count-num" style="font-weight: 700; color: var(--text-primary); margin-left: 4px;">{{ avg_rating }}</span>
+        {% else %}
+          ☆☆☆☆☆ <span class="rating-count-num" style="color: var(--text-tertiary); font-size: 13px; margin-left: 4px;">No reviews yet</span>
+        {% endif %}
+      </span>
+      <span class="rating-count">({{ reviews.count }} ratings)</span>
       <span class="rating-sold">| 500+ sold</span>
     </div>
 
