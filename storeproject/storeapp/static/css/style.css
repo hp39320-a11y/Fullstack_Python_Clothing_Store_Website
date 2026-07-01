@@ -946,3 +946,25 @@ footer {
   border-top-color: var(--accent);
   animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+
+/* Top progressive loader bar */
+.loader-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--gold) 100%);
+  width: 0%;
+  z-index: 100000;
+  transition: width 0.3s ease-out, opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader-bar.active {
+  opacity: 1;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
