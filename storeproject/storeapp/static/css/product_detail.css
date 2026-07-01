@@ -80,3 +80,114 @@
 
 @media(max-width:900px) { .pd-container { grid-template-columns:1fr; gap:36px; padding:32px 20px; } .pd-main-img { aspect-ratio:1; } }
 @media(max-width:480px) { .pd-actions { flex-direction:column; } .breadcrumb-bar { padding:10px 16px; } }
+/* =========================================
+   CUSTOMER REVIEWS LAYOUT
+   ========================================= */
+.reviews-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px 80px 32px;
+}
+
+.reviews-header {
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 16px;
+  margin-bottom: 32px;
+}
+
+.reviews-header h2 {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.reviews-layout {
+  display: grid;
+  grid-template-columns: 1fr 2.2fr;
+  gap: 48px;
+  align-items: start;
+}
+
+/* Summary Card */
+.reviews-summary-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--r-lg);
+  padding: 32px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 100px;
+}
+
+.summary-score-block {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-avg-score {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.summary-stars {
+  color: #FFA500;
+  font-size: 18px;
+  letter-spacing: 2px;
+}
+
+.summary-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.rating-breakdown-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+.breakdown-label {
+  width: 40px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.breakdown-progress-bg {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: 3px;
+  margin: 0 12px;
+  overflow: hidden;
+}
+
+.breakdown-progress-fill {
+  height: 100%;
+  background: #FFA500;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.breakdown-percent {
+  width: 35px;
+  text-align: right;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
