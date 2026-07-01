@@ -19,6 +19,7 @@
 <title>{% block title %}UrbanWear – Premium Fashion{% endblock %}</title>
 </head>
 <body>
+
 <!-- GLOBAL PAGE LOADING ANIMATION -->
 <div id="loader-bar" class="loader-bar"></div>
 <div id="page-loader" class="page-loader">
@@ -275,6 +276,75 @@
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     updateThemeIcons(newTheme);
+  });
+
+  // Premium Page Transition Loader
+  document.addEventListener('DOMContentLoaded', () => {
+    const loader = document.getElementById('page-loader');
+    const loaderBar = document.getElementById('loader-bar');
+    
+    // Hide loader on initial page load
+    if (loader) {
+      loader.classList.add('fade-out');
+    }
+
+    // Intercept clicks on links for smooth exit transition
+    document.body.addEventListener('click', (e) => {
+      // Find closest anchor tag
+      const link = e.target.closest('a');
+      if (!link) return;
+      
+      const href = link.getAttribute('href');
+      const target = link.getAttribute('target');
+      
+      if (!href) return;
+      if (target === '_blank') return;
+      if (href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      
+      // Ignore clicks with modifiers (Cmd, Ctrl, Shift)
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+      
+      // Exclude special action links like Add to Cart or wishlist that are handled via AJAX/JS
+      if (link.classList.contains('no-loader') || link.getAttribute('data-no-loader') !== null || link.onclick) return;
+      
+      // Verify it's an internal link
+      try {
+        const linkUrl = new URL(href, window.location.origin);
+        if (linkUrl.origin === window.location.origin) {
+          e.preventDefault();
+          
+          // Show loader overlay and activate progress bar
+          if (loader) {
+            loader.classList.remove('fade-out');
+          }
+          if (loaderBar) {
+            loaderBar.classList.add('active');
+            loaderBar.style.width = '70%';
+          }
+          
+          // Navigate after a brief transition delay
+          setTimeout(() => {
+            window.location.href = href;
+          }, 250);
+        }
+      } catch (err) {
+        // Ignore parsing errors
+      }
+    });
+
+    // Handle Back-Forward Cache (BF cache) so loading screen isn't stuck when clicking back
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) {
+        if (loader) loader.classList.add('fade-out');
+        if (loaderBar) {
+          loaderBar.style.width = '100%';
+          setTimeout(() => {
+            loaderBar.classList.remove('active');
+            loaderBar.style.width = '0%';
+          }, 300);
+        }
+      }
+    });
   });
 </script>
 {% block extra_js %}{% endblock %}
