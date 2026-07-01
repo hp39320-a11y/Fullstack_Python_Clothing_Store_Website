@@ -197,11 +197,6 @@ class Coupon(models.Model):
         from django.utils import timezone
         now = timezone.now()
         return self.active and self.valid_from <= now <= self.valid_to
-    
-
-
-    
-    
 
 
 class Review(models.Model):
@@ -220,3 +215,26 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s review for {self.product.name}"
+
+    @property
+    def is_verified(self):
+        """
+        Check if the reviewer actually purchased the product successfully.
+        """
+        from .models import OrderItem
+        return OrderItem.objects.filter(
+            order__user=self.user,
+            order__payment_status__in=['Success', 'Paid'],
+            product=self.product
+        ).exists() or OrderItem.objects.filter(
+            order__user=self.user,
+            order__status='Delivered',
+            product=self.product
+        ).exists()
+
+
+    
+
+
+    
+    
