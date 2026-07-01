@@ -469,6 +469,7 @@ def product_detail(request, product_id):
     if total_reviews > 0:
         for r in reviews:
             rating_breakdown[r.rating] += 1
+        # Convert counts to percentages
         for i in range(1, 6):
             rating_breakdown[i] = round((rating_breakdown[i] / total_reviews) * 100)
 
@@ -496,8 +497,10 @@ def product_detail(request, product_id):
         'is_verified_buyer': is_verified_buyer,
         'user_review': user_review,
         'rating_breakdown': rating_breakdown,
+        'form': form,
     }
     return render(request, 'product_detail.html', context)
+
 
 
 @login_required
