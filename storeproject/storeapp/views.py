@@ -460,12 +460,26 @@ def product_detail(request, product_id):
         product=product
     ).exists()
 
+    # Check if the user already submitted a review to prevent multiple reviews
+    user_review = reviews.filter(user=request.user).first()
+
+    # Calculate rating breakdown percentages (5 star down to 1 star)
+    rating_breakdown = {i: 0 for i in range(1, 6)}
+    total_reviews = reviews.count()
+    if total_reviews > 0:
+        for r in reviews:
+            rating_breakdown[r.rating] += 1
+        for i in range(1, 6):
+            rating_breakdown[i] = round((rating_breakdown[i] / total_reviews) * 100)
+
     context = {
         'product': product,
         'product_sizes': product_sizes,
         'reviews': reviews,
         'avg_rating': avg_rating,
         'is_verified_buyer': is_verified_buyer,
+        'user_review': user_review,
+        'rating_breakdown': rating_breakdown,
     }
     return render(request, 'product_detail.html', context)
 
