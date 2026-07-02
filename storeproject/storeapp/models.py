@@ -183,6 +183,7 @@ class Coupon(models.Model):
     """
     code = models.CharField(max_length=20, unique=True)
     discount = models.IntegerField(help_text="Percentage (e.g. 10 for 10%)")
+    min_purchase_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     active = models.BooleanField(default=True)
     valid_from = models.DateTimeField()
     valid_to = models.DateTimeField()
@@ -190,13 +191,19 @@ class Coupon(models.Model):
     def __str__(self):
         return self.code
 
-    def is_valid(self):
+    def is_valid(self, subtotal=None):
         """
-        Check if the coupon is currently active and within its valid date range.
+        Check if the coupon is currently active, within its valid date range,
+        and meets the minimum purchase amount if a subtotal is provided.
         """
         from django.utils import timezone
         now = timezone.now()
-        return self.active and self.valid_from <= now <= self.valid_to
+        date_valid = self.active and self.valid_from <= now <= self.valid_to
+        if not date_valid:
+            return False
+        if subtotal is not None and subtotal < self.min_purchase_amount:
+            return False
+        return True
 
 
 class Review(models.Model):
