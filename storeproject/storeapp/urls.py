@@ -24,6 +24,7 @@ urlpatterns = [
     path('product/<int:product_id>/', views.product_detail, name='product_detail'),
     path('shop/', views.shop, name='shop'),
     path('search/', views.search, name='search'),
+    path('search/suggestions/', views.search_suggestions, name='search_suggestions'),
 
     # CART
     path('cart/', views.cart_detail, name='cart_detail'),
@@ -31,11 +32,14 @@ urlpatterns = [
     path('cart/remove/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('cart/increase/<int:product_id>/', views.cart_increase_quantity, name='cart_increase_quantity'),
     path('cart/decrease/<int:product_id>/', views.cart_decrease_quantity, name='cart_decrease_quantity'),
+    path('cart/api/update/<int:item_id>/', views.api_cart_update, name='api_cart_update'),
+    path('cart/api/remove/<int:item_id>/', views.api_cart_remove, name='api_cart_remove'),
 
     # CHECKOUT
     path('checkout/', views.checkout, name='checkout'),
     path('checkout/increase/<int:product_id>/', views.checkout_increase, name='checkout_increase'),
     path('checkout/decrease/<int:product_id>/', views.checkout_decrease, name='checkout_decrease'),
+    path('address/delete/<int:address_id>/', views.delete_address, name='delete_address'),
 
     # PAYMENT
     path('payment-success/', views.payment_success, name='payment_success'),
