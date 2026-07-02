@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
-
+    // Premium checkout flow and address modal selection setup
     const modal = document.getElementById("addressModal");
     const openBtn = document.getElementById("changeAddressBtn");
     const closeBtn = document.getElementById("closeModal");
