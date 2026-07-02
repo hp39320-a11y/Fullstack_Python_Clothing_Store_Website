@@ -396,3 +396,98 @@ class ReviewModelAndViewsTest(TestCase):
         # The view redirects back to product page but doesn't create a new review
         self.assertEqual(Review.objects.filter(product=self.product, user=self.user).count(), 1)
 
+
+class EnhancedFeaturesTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="enhanceduser", password="password")
+        self.category = Cateogry.objects.create(name="Men's Wear")
+        self.subcategory = Subcategory.objects.create(category=self.category, name="T-Shirts")
+        self.product = Products.objects.create(
+            category=self.category,
+            subcategory=self.subcategory,
+            name="Classic T-Shirt",
+            price=499.00,
+            stock=10,
+            image="products/tshirt.jpg"
+        )
+        self.client.login(username="enhanceduser", password="password")
+
+    def test_coupon_minimum_purchase_validation(self):
+        from django.utils import timezone
+        from datetime import timedelta
+        # Create a coupon requiring ₹1000 minimum purchase
+        coupon = Coupon.objects.create(
+            code="MIN1000",
+            discount=10,
+            min_purchase_amount=1000.00,
+            active=True,
+            valid_from=timezone.now() - timedelta(days=1),
+            valid_to=timezone.now() + timedelta(days=5)
+        )
+        
+        # Cart subtotal is 499.00 (less than 1000)
+        Cart.objects.create(user=self.user, product=self.product, quantity=1, size="M")
+        
+        # Apply coupon via POST
+        response = self.client.post(
+            "/checkout/",
+            {"apply_coupon": "MIN1000"}
+        )
+        # Should render back with error message
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Minimum purchase of")
+        # Check that coupon is NOT stored in session discount
+        self.assertIsNone(self.client.session.get('coupon'))
+
+    def test_add_to_cart_custom_size_and_quantity(self):
+        # Post request to add_to_cart with size 'L' and quantity 2
+        response = self.client.post(
+            f"/cart/add/{self.product.id}/",
+            {"size": "L", "quantity": 2}
+        )
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify Cart item exists with chosen size/qty
+        cart_item = Cart.objects.get(user=self.user, product=self.product)
+        self.assertEqual(cart_item.size, "L")
+        self.assertEqual(cart_item.quantity, 2)
+
+    def test_shipping_fee_applied_under_999(self):
+        # Create address
+        address = Address.objects.create(
+            user=self.user,
+            full_name="John Doe",
+            phone="1234567890",
+            address_line="123 Street",
+            city="Chennai",
+            state="TN",
+            pincode="600001"
+        )
+        # Subtotal = 499.00
+        Cart.objects.create(user=self.user, product=self.product, quantity=1, size="M")
+        
+        # Place COD order
+        response = self.client.post(
+            "/checkout/",
+            {"address": address.id, "payment_method": "COD"}
+        )
+        self.assertEqual(response.status_code, 302)
+        
+        # Total should be subtotal + shipping (499.00 + 79.00 = 578.00)
+        order = Order.objects.latest('id')
+        self.assertEqual(float(order.total_amount), 578.00)
+
+    def test_address_deletion(self):
+        address = Address.objects.create(
+            user=self.user,
+            full_name="Temp Address",
+            phone="1234567890",
+            address_line="123 Street",
+            city="Chennai",
+            state="TN",
+            pincode="600001"
+        )
+        response = self.client.post(f"/address/delete/{address.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Address.objects.filter(id=address.id).exists())
+
