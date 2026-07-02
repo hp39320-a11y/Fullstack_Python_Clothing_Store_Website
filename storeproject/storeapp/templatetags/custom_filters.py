@@ -16,6 +16,9 @@ def currency(value):
 
 @register.filter(name='subtract')
 def subtract(value, arg):
+    """
+    Subtract arg from value (useful for calculations in Django templates).
+    """
     try:
         return Decimal(str(value)) - Decimal(str(arg))
     except Exception:
