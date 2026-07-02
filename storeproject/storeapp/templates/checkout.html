@@ -104,10 +104,13 @@ Change
 <p>Subtotal: ₹{{ subtotal|default:0 }}</p>
 
 {% if discount %}
-<p class="applied-coupon">
-    Coupon {{ coupon_code }} applied -₹{{ discount|floatformat:2 }} ✅
-</p>
+<div class="applied-coupon" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <span>Coupon {{ coupon_code }} applied -₹{{ discount|floatformat:2 }} ✅</span>
+    <button type="submit" name="remove_coupon" value="1" style="background:none; border:none; color:#dc3545; cursor:pointer; font-size:13px; font-weight:700; padding:2px 6px;">[Remove]</button>
+</div>
 {% endif %}
+
+<p>Delivery: {% if shipping_fee == 0 %}FREE{% else %}₹{{ shipping_fee|floatformat:2 }}{% endif %}</p>
 
 <p class="total-price">
     Total: ₹{{ total|default:0|floatformat:2 }}
@@ -155,7 +158,8 @@ Change
 <div class="modal-body">
 
 {% for addr in addresses %}
-<label class="modal-card">
+<div class="address-card-container" id="address-card-container-{{ addr.id }}" style="position:relative; margin-bottom:14px;">
+<label class="modal-card" style="margin-bottom:0; padding-right:50px;">
 
 <input type="radio" name="address" value="{{ addr.id }}"
 {% if forloop.first %}checked{% endif %}>
@@ -168,6 +172,8 @@ Change
 </div>
 
 </label>
+<button type="button" class="delete-address-btn" data-address-id="{{ addr.id }}" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); background:none; border:none; color:red; cursor:pointer; font-size:20px; font-weight:bold; z-index:10;" title="Delete Address">&times;</button>
+</div>
 {% endfor %}
 
 <!-- ADD NEW -->
