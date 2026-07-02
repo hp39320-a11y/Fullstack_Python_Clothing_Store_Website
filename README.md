@@ -170,7 +170,7 @@ On your Render Dashboard, click **New +** and select **Web Service** (do *not* s
   ```
 - **Start Command**:
   ```bash
-  gunicorn --chdir storeproject storeproject.wsgi:application
+  gunicorn --chdir storeproject --bind 0.0.0.0:$PORT storeproject.wsgi:application
   ```
 
 ### 3. Add Environment Variables
@@ -180,4 +180,27 @@ Under the **Environment** tab of your Render Web Service, add the following vari
 - `ALLOWED_HOSTS`: `fullstack-python-clothing-store-website.onrender.com`
 - `RAZORPAY_KEY_ID`: *[Your Razorpay Test Key]*
 - `RAZORPAY_KEY_SECRET`: *[Your Razorpay Test Secret]*
+
+---
+
+## ⚠️ Important Production Database Notes
+
+1. **SQLite is Ephemeral**: By default, Render web services have ephemeral local storage. Since `db.sqlite3` is in `.gitignore`, it will not be deployed with your code. Running `python storeproject/manage.py migrate` during the build phase will create a fresh, empty SQLite database. Any changes made to this database (e.g. creating categories, products, or new user accounts) will be lost whenever your Render service restarts or is redeployed.
+2. **How to Persist Data**:
+   - **Render Persistent Disk**: You can attach a Persistent Disk to your Render Web Service (e.g. mounted at `/data/`) and configure the `DATABASES` setting in `settings.py` to point to `/data/db.sqlite3` instead of the project directory.
+   - **Managed Database (Recommended)**: For production systems, provision a managed PostgreSQL database (e.g. via Render PostgreSQL), add `psycopg2-binary` and `dj-database-url` to your `requirements.txt`, and update `settings.py` to use the database URL connection string.
+3. **How to Seed Initial Data**:
+   If you want to copy your local products, categories, and setup to the hosted Render database, you can export your local database contents to a JSON fixture and load it during deployment:
+   - **Step A: Export your local data** (run locally in your terminal):
+     ```bash
+     python storeproject/manage.py dumpdata --exclude=auth.permission --exclude=contenttypes --indent 4 > storeproject/seed_data.json
+     ```
+   - **Step B: Commit and push** `storeproject/seed_data.json` to GitHub.
+   - **Step C: Update Render Build Command**:
+     Update your Render Build Command to load this data after migrations:
+     ```bash
+     pip install -r requirements.txt && python storeproject/manage.py collectstatic --noinput && python storeproject/manage.py migrate && python storeproject/manage.py loaddata storeproject/seed_data.json
+     ```
+
+
 
