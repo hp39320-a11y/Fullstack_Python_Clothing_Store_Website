@@ -130,22 +130,153 @@ def subcategory_view(request, id):
 
 @login_required
 def add_to_cart(request, product_id):
-
     if request.method == "POST":
         product = get_object_or_404(Products, id=product_id)
+        
+        size = 'M'
+        quantity = 1
+        
+        # Try to parse from JSON first
+        if request.content_type == 'application/json':
+            try:
+                data = json.loads(request.body)
+                size = data.get('size', 'M')
+                quantity = int(data.get('quantity', 1))
+            except Exception:
+                pass
+        else:
+            # Parse from POST fields
+            size = request.POST.get('size', 'M')
+            try:
+                quantity = int(request.POST.get('quantity', 1))
+            except (ValueError, TypeError):
+                quantity = 1
+
+        if not size:
+            size = 'M'
+        if quantity < 1:
+            quantity = 1
+
+        # Check if the product has size options, validate choice
+        if product.sizes:
+            valid_sizes = [s.strip() for s in product.sizes.split(',') if s.strip()]
+            if valid_sizes and size not in valid_sizes:
+                size = valid_sizes[0]
 
         cart_item, created = Cart.objects.get_or_create(
             user=request.user,
-            product=product
+            product=product,
+            size=size,
+            defaults={'quantity': quantity}
         )
 
         if not created:
-            cart_item.quantity += 1
+            if cart_item.quantity + quantity <= product.stock:
+                cart_item.quantity += quantity
+            else:
+                cart_item.quantity = product.stock
             cart_item.save()
 
-        return JsonResponse({"status": "success"})
+        # Return updated count of items in the cart
+        total_cart_count = sum(item.quantity for item in Cart.objects.filter(user=request.user))
+        return JsonResponse({
+            "status": "success",
+            "cart_count": total_cart_count
+        })
 
-    return JsonResponse({"status": "error"})
+    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
+
+
+@login_required
+def api_cart_update(request, item_id):
+    if request.method == "POST":
+        cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+        action = request.POST.get('action')
+        
+        status = "success"
+        message = ""
+        
+        if action == 'increase':
+            if cart_item.quantity < cart_item.product.stock:
+                cart_item.quantity += 1
+                cart_item.save()
+            else:
+                status = "error"
+                message = "Stock limit reached!"
+        elif action == 'decrease':
+            if cart_item.quantity > 1:
+                cart_item.quantity -= 1
+                cart_item.save()
+            else:
+                cart_item.delete()
+                status = "removed"
+                message = "Item removed"
+        elif action == 'set':
+            try:
+                qty = int(request.POST.get('quantity', 1))
+                if qty < 1:
+                    cart_item.delete()
+                    status = "removed"
+                    message = "Item removed"
+                else:
+                    if qty <= cart_item.product.stock:
+                        cart_item.quantity = qty
+                        cart_item.save()
+                    else:
+                        cart_item.quantity = cart_item.product.stock
+                        cart_item.save()
+                        status = "error"
+                        message = f"Only {cart_item.product.stock} units available!"
+            except Exception:
+                status = "error"
+                message = "Invalid quantity"
+        else:
+            status = "error"
+            message = "Invalid action"
+
+        # Calculate new totals
+        cart_items = Cart.objects.filter(user=request.user)
+        total = sum(item.total_price() for item in cart_items)
+        cart_count = sum(item.quantity for item in cart_items)
+        
+        delivery = 0 if (total >= 999 or total == 0) else 79
+        grand_total = total + delivery
+
+        return JsonResponse({
+            "status": status,
+            "message": message,
+            "quantity": cart_item.quantity if (status == "success" or status == "error") else 0,
+            "item_total_price": float(cart_item.total_price()) if (status == "success" or status == "error") else 0,
+            "subtotal": float(total),
+            "cart_count": cart_count,
+            "delivery": delivery,
+            "grand_total": float(grand_total)
+        })
+    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
+
+
+@login_required
+def api_cart_remove(request, item_id):
+    if request.method == "POST":
+        cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+        cart_item.delete()
+        
+        cart_items = Cart.objects.filter(user=request.user)
+        total = sum(item.total_price() for item in cart_items)
+        cart_count = sum(item.quantity for item in cart_items)
+        
+        delivery = 0 if (total >= 999 or total == 0) else 79
+        grand_total = total + delivery
+
+        return JsonResponse({
+            "status": "success",
+            "message": "Item removed successfully",
+            "subtotal": float(total),
+            "cart_count": cart_count,
+            "delivery": delivery,
+            "grand_total": float(grand_total)
+        })
+    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
 
 
 @login_required
@@ -156,12 +287,16 @@ def cart_detail(request):
     cart_items = Cart.objects.filter(user=request.user)
 
     total = sum(item.total_price() for item in cart_items)
+    delivery_fee = 0 if (total >= 999 or total == 0) else 79
+    grand_total = total + delivery_fee
 
     categories = Cateogry.objects.all()
 
     return render(request, 'cart.html', {
         'cart_items': cart_items,
         'total': total,
+        'delivery_fee': delivery_fee,
+        'grand_total': grand_total,
         'categories': categories
     })
 
@@ -243,7 +378,7 @@ def checkout(request):
             try:
                 coupon = Coupon.objects.get(code=code, active=True)
 
-                if coupon.valid_from <= dj_timezone.now() <= coupon.valid_to:
+                if coupon.is_valid(subtotal):
                     discount = (Decimal(coupon.discount) / Decimal("100")) * subtotal
 
                     request.session['coupon'] = coupon.code
@@ -251,10 +386,21 @@ def checkout(request):
 
                     return redirect('checkout')
                 else:
-                    error = "Coupon expired"
+                    if coupon.min_purchase_amount > subtotal:
+                        error = f"Minimum purchase of ₹{coupon.min_purchase_amount} required for this coupon"
+                    else:
+                        error = "Coupon is invalid or expired"
 
             except Coupon.DoesNotExist:
                 error = "Invalid coupon"
+
+        # =========================
+        # REMOVE COUPON
+        # =========================
+        elif 'remove_coupon' in request.POST:
+            request.session.pop('coupon', None)
+            request.session.pop('discount', None)
+            return redirect('checkout')
 
         # =========================
         # SAVE ADDRESS
@@ -285,7 +431,25 @@ def checkout(request):
             else:
                 address = Address.objects.get(id=address_id, user=request.user)
 
-                total = subtotal - Decimal(request.session.get('discount', "0"))
+                # Validate coupon from session again
+                saved_coupon_code = request.session.get('coupon')
+                if saved_coupon_code:
+                    try:
+                        coupon = Coupon.objects.get(code=saved_coupon_code, active=True)
+                        if coupon.is_valid(subtotal):
+                            discount = (Decimal(coupon.discount) / Decimal("100")) * subtotal
+                        else:
+                            discount = Decimal("0")
+                            request.session.pop('coupon', None)
+                            request.session.pop('discount', None)
+                    except Coupon.DoesNotExist:
+                        discount = Decimal("0")
+                        request.session.pop('coupon', None)
+                        request.session.pop('discount', None)
+
+                # Correctly calculate total: subtotal - discount + shipping_fee
+                shipping_fee = Decimal("0") if (subtotal >= 999 or subtotal == 0) else Decimal("79")
+                total = subtotal - discount + shipping_fee
 
                 order = Order.objects.create(
                     user=request.user,
@@ -339,17 +503,33 @@ def checkout(request):
     # =========================
     # LOAD SESSION
     # =========================
-    if request.session.get('discount'):
-        discount = Decimal(request.session.get('discount'))
-
     coupon_code = request.session.get('coupon')
-    total = subtotal - discount
+    if coupon_code:
+        try:
+            coupon = Coupon.objects.get(code=coupon_code, active=True)
+            if coupon.is_valid(subtotal):
+                discount = (Decimal(coupon.discount) / Decimal("100")) * subtotal
+                request.session['discount'] = str(discount)
+            else:
+                request.session.pop('coupon', None)
+                request.session.pop('discount', None)
+                discount = Decimal("0")
+                coupon_code = None
+                error = f"Coupon {coupon.code} removed because minimum order requirement of ₹{coupon.min_purchase_amount} was not met."
+        except Coupon.DoesNotExist:
+            request.session.pop('coupon', None)
+            request.session.pop('discount', None)
+            discount = Decimal("0")
+            coupon_code = None
+
+    shipping_fee = Decimal("0") if (subtotal >= 999 or subtotal == 0) else Decimal("79")
+    total = subtotal - discount + shipping_fee
     from django.utils import timezone
 
     available_coupons = Coupon.objects.filter(
-    active=True,
-    valid_from__lte=timezone.now(),
-    valid_to__gte=timezone.now()
+        active=True,
+        valid_from__lte=timezone.now(),
+        valid_to__gte=timezone.now()
     )
 
     return render(request, 'checkout.html', {
@@ -357,11 +537,21 @@ def checkout(request):
         'addresses': addresses,
         'subtotal': subtotal,
         'discount': discount,
+        'shipping_fee': shipping_fee,
         'total': total,
         'coupon_code': coupon_code,
         'error': error,
         'available_coupons': available_coupons
     })
+
+
+@login_required
+def delete_address(request, address_id):
+    address = get_object_or_404(Address, id=address_id, user=request.user)
+    if request.method == "POST":
+        address.delete()
+        return JsonResponse({"status": "success", "message": "Address deleted successfully"})
+    return JsonResponse({"status": "error", "message": "Invalid method"}, status=400)
 @login_required
 def order_success(request, order_id):
 
@@ -557,19 +747,66 @@ def order_tracking(request, id):
     return render(request, "order_tracking.html", {"order": order})
 
 def search(request):
-    query = request.GET.get('q')
+    query = request.GET.get('q', '').strip()
+    sort_by = request.GET.get('sort_by', '')
+    category_id = request.GET.get('category', '')
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
 
     if query:
         products = Products.objects.filter(name__icontains=query)
     else:
-        products = []
+        products = Products.objects.none()
+
+    if category_id:
+        products = products.filter(category_id=category_id)
+
+    if min_price:
+        try:
+            products = products.filter(price__gte=Decimal(min_price))
+        except Exception:
+            pass
+
+    if max_price:
+        try:
+            products = products.filter(price__lte=Decimal(max_price))
+        except Exception:
+            pass
+
+    if sort_by == 'price_asc':
+        products = products.order_by('price')
+    elif sort_by == 'price_desc':
+        products = products.order_by('-price')
+
+    categories = Cateogry.objects.all()
 
     context = {
         'query': query,
-        'products': products
+        'products': products,
+        'categories': categories,
+        'selected_category': category_id,
+        'selected_sort': sort_by,
+        'min_price': min_price,
+        'max_price': max_price
     }
 
     return render(request, 'search.html', context)
+
+
+def search_suggestions(request):
+    query = request.GET.get('q', '').strip()
+    results = []
+    if len(query) >= 2:
+        products = Products.objects.filter(name__icontains=query)[:5]
+        for p in products:
+            image_url = p.image.url if p.image else ""
+            results.append({
+                "id": p.id,
+                "name": p.name,
+                "price": float(p.price),
+                "image_url": image_url
+            })
+    return JsonResponse({"results": results})
 
 def shop(request):
     category_id = request.GET.get('category')
