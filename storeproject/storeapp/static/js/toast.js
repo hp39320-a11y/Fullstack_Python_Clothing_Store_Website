@@ -1,5 +1,5 @@
 // ==============================
-// 🔐 CSRF TOKEN
+// 🔐 CSRF TOKEN UTILITY
 // ==============================
 function getCSRFToken() {
     return document.cookie.split('; ')
