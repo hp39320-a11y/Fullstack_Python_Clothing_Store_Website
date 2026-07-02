@@ -31,5 +31,6 @@ RUN python storeproject/manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Start command
-# We run migrations first to ensure the database schema is up-to-date.
-CMD sh -c "python storeproject/manage.py migrate && gunicorn --chdir storeproject --bind 0.0.0.0:${PORT:-8000} storeproject.wsgi:application"
+# We run migrations first to ensure the database schema is up-to-date, then optionally load seed data if present.
+CMD sh -c "python storeproject/manage.py migrate && ( [ -f storeproject/seed_data.json ] && python storeproject/manage.py loaddata storeproject/seed_data.json || true ) && gunicorn --chdir storeproject --bind 0.0.0.0:${PORT:-8000} storeproject.wsgi:application"
+
