@@ -41,8 +41,9 @@
 
     <a href="{% url 'index' %}" class="logo">Urban<span class="logo-accent">Wear</span></a>
 
-    <form method="GET" action="{% url 'search' %}" class="search-form" id="search-form">
+    <form method="GET" action="{% url 'search' %}" class="search-form" id="search-form" style="position:relative;">
       <input type="text" name="q" placeholder="Search for clothes, brands, styles..." id="search-input" autocomplete="off">
+      <div id="search-suggestions-box" class="search-suggestions-box" style="display:none; position:absolute; top:100%; left:0; width:100%; z-index:1100; max-height:300px; overflow-y:auto; padding:8px 0; border-radius:var(--r); margin-top:4px;"></div>
       <button type="submit">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         Search
@@ -343,6 +344,61 @@
             loaderBar.style.width = '0%';
           }, 300);
         }
+      }
+    // Autocomplete Search Suggestions
+    const searchInput = document.getElementById('search-input');
+    const suggestionsBox = document.getElementById('search-suggestions-box');
+    let debounceTimer;
+
+    searchInput?.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const query = searchInput.value.trim();
+
+      if (query.length < 2) {
+        suggestionsBox.style.display = 'none';
+        suggestionsBox.innerHTML = '';
+        return;
+      }
+
+      debounceTimer = setTimeout(() => {
+        fetch(`/search/suggestions/?q=${encodeURIComponent(query)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.results && data.results.length > 0) {
+              suggestionsBox.innerHTML = '';
+              data.results.forEach(product => {
+                const item = document.createElement('a');
+                item.href = `/product/${product.id}/`;
+                item.className = 'suggestion-item';
+                
+                const imgHTML = product.image_url 
+                  ? `<img src="${product.image_url}" class="suggestion-img">`
+                  : `<div class="suggestion-img" style="display:flex;align-items:center;justify-content:center;background:var(--bg-secondary);">👗</div>`;
+
+                item.innerHTML = `
+                  ${imgHTML}
+                  <div class="suggestion-details">
+                    <span class="suggestion-name">${product.name}</span>
+                    <span class="suggestion-price">₹${product.price.toFixed(2)}</span>
+                  </div>
+                `;
+                suggestionsBox.appendChild(item);
+              });
+              suggestionsBox.style.display = 'block';
+            } else {
+              suggestionsBox.style.display = 'none';
+              suggestionsBox.innerHTML = '';
+            }
+          })
+          .catch(err => {
+            console.error("Suggestions fetch error:", err);
+          });
+      }, 300);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!searchInput?.contains(e.target) && !suggestionsBox?.contains(e.target)) {
+        if (suggestionsBox) suggestionsBox.style.display = 'none';
       }
     });
   });
