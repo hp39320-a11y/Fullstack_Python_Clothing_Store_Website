@@ -40,4 +40,50 @@ document.addEventListener("DOMContentLoaded", function () {
     // Show new address form
     addNewBtn.onclick = () => newForm.style.display = "block";
 
+    // Delete address handler
+    const deleteBtns = document.querySelectorAll(".delete-address-btn");
+    deleteBtns.forEach(btn => {
+        btn.onclick = function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const addressId = this.dataset.addressId;
+            if (confirm("Are you sure you want to delete this address?")) {
+                fetch(`/address/delete/${addressId}/`, {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        const container = document.getElementById(`address-card-container-${addressId}`);
+                        if (container) {
+                            container.remove();
+                        }
+                        const remainingRadios = document.querySelectorAll('input[name="address"]');
+                        if (remainingRadios.length > 0) {
+                            const checked = document.querySelector('input[name="address"]:checked');
+                            if (!checked) {
+                                remainingRadios[0].checked = true;
+                                updateAddress(remainingRadios[0].closest(".modal-card"));
+                            } else {
+                                updateAddress(checked.closest(".modal-card"));
+                            }
+                        } else {
+                            selectedText.innerText = "Select your address";
+                        }
+                    } else {
+                        alert(data.message || "Error deleting address");
+                    }
+                })
+                .catch(err => {
+                    console.error("Address deletion failed:", err);
+                    alert("Error deleting address");
+                });
+            }
+        };
+    });
+
 });
