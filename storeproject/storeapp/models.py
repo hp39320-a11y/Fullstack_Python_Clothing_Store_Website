@@ -183,6 +183,7 @@ class Coupon(models.Model):
     """
     code = models.CharField(max_length=20, unique=True)
     discount = models.IntegerField(help_text="Percentage (e.g. 10 for 10%)")
+    # Minimum purchase amount required to use this coupon (defaults to 0.00)
     min_purchase_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     active = models.BooleanField(default=True)
     valid_from = models.DateTimeField()
