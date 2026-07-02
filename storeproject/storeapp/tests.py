@@ -398,6 +398,9 @@ class ReviewModelAndViewsTest(TestCase):
 
 
 class EnhancedFeaturesTest(TestCase):
+    """
+    Test suite verifying coupon limits, AJAX cart additions, shipping fee additions, and address deletion.
+    """
     def setUp(self):
         self.user = User.objects.create_user(username="enhanceduser", password="password")
         self.category = Cateogry.objects.create(name="Men's Wear")
