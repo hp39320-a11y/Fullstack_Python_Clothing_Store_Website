@@ -37,23 +37,36 @@ document.addEventListener("click", function(e){
     if(cartBtn){
         e.preventDefault();
         const productId = cartBtn.dataset.id;
+        
+        const sizeInput = document.getElementById("selected-size");
+        const qtyInput = document.getElementById("pd-qty");
+        
+        const size = sizeInput ? sizeInput.value : "";
+        const quantity = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
 
         fetch(`/cart/add/${productId}/`, {
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 "X-CSRFToken": getCSRFToken(),
-            }
+            },
+            body: JSON.stringify({
+                size: size,
+                quantity: quantity
+            })
         })
         .then(res => {
-            if (res.ok) {
+            if (!res.ok) throw new Error("Network response was not ok");
+            return res.json();
+        })
+        .then(data => {
+            if (data.status === "success") {
                 showToast("Item added to cart 🛒", "success");
                 
                 // Dynamically update Cart Badge count
                 const cartBadge = document.getElementById("cart-badge");
                 if (cartBadge) {
-                    let count = parseInt(cartBadge.innerText) || 0;
-                    count += 1;
-                    cartBadge.innerText = count;
+                    cartBadge.innerText = data.cart_count;
                     cartBadge.style.display = "inline-flex"; // ensure visible
 
                     // Trigger badge animation pop
@@ -62,7 +75,7 @@ document.addEventListener("click", function(e){
                     cartBadge.style.animation = null;
                 }
             } else {
-                showToast("Error adding to cart", "error");
+                showToast(data.message || "Error adding to cart", "error");
             }
         })
         .catch(err => {
