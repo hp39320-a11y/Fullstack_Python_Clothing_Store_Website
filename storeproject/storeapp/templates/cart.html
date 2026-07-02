@@ -15,7 +15,7 @@
   <div class="cart-items-col">
 
     {% for item in cart_items %}
-    <div class="cart-row" id="cart-row-{{ item.product.id }}">
+    <div class="cart-row" id="cart-row-{{ item.id }}">
       <a href="{% url 'product_detail' item.product.id %}" class="cart-row-img">
         {% if item.product.image %}
         <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
@@ -33,20 +33,20 @@
               <span class="tag-pill">{{ item.product.category.name }}</span>
             </div>
           </div>
-          <a href="{% url 'remove_from_cart' item.product.id %}" class="cart-remove-btn" id="cart-remove-{{ item.product.id }}" title="Remove">
+          <a href="{% url 'remove_from_cart' item.product.id %}" class="cart-remove-btn ajax-cart-remove" data-item-id="{{ item.id }}" id="cart-remove-{{ item.id }}" title="Remove">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="m19 6-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6m5 0V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2"/></svg>
             Remove
           </a>
         </div>
         <div class="cart-row-bottom">
           <div class="cart-qty-bar">
-            <a href="{% url 'cart_decrease_quantity' item.product.id %}" class="qty-btn" id="cart-dec-{{ item.product.id }}" aria-label="Decrease">−</a>
-            <span class="qty-num">{{ item.quantity }}</span>
-            <a href="{% url 'cart_increase_quantity' item.product.id %}" class="qty-btn" id="cart-inc-{{ item.product.id }}" aria-label="Increase">+</a>
+            <a href="{% url 'cart_decrease_quantity' item.product.id %}" class="qty-btn ajax-qty-dec" data-item-id="{{ item.id }}" id="cart-dec-{{ item.id }}" aria-label="Decrease">−</a>
+            <span class="qty-num" id="qty-num-{{ item.id }}">{{ item.quantity }}</span>
+            <a href="{% url 'cart_increase_quantity' item.product.id %}" class="qty-btn ajax-qty-inc" data-item-id="{{ item.id }}" id="cart-inc-{{ item.id }}" aria-label="Increase">+</a>
           </div>
           <div class="cart-price-stack">
-            <span class="cart-unit-price">₹{{ item.product.price }} × {{ item.quantity }}</span>
-            <span class="cart-item-total">₹{{ item.total_price }}</span>
+            <span class="cart-unit-price">₹{{ item.product.price }} × <span id="unit-qty-{{ item.id }}">{{ item.quantity }}</span></span>
+            <span class="cart-item-total" id="item-total-{{ item.id }}">₹{{ item.total_price }}</span>
           </div>
         </div>
       </div>
@@ -59,18 +59,18 @@
     <div class="cart-summary-box">
       <h3 class="summary-heading">Price Details</h3>
       <div class="summary-rows">
-        <div class="summary-row"><span>Price ({{ cart_items|length }} items)</span><span>₹{{ total }}</span></div>
-        <div class="summary-row"><span>Delivery</span><span class="free-label">{% if total >= 999 %}FREE{% else %}₹79{% endif %}</span></div>
+        <div class="summary-row"><span>Price ({{ cart_items|length }} items)</span><span id="cart-subtotal">₹{{ total }}</span></div>
+        <div class="summary-row"><span>Delivery</span><span id="cart-delivery" class="{% if delivery_fee == 0 %}free-label{% endif %}">{% if delivery_fee == 0 %}FREE{% else %}₹{{ delivery_fee }}.00{% endif %}</span></div>
         <div class="summary-row"><span>Platform Fee</span><span>₹0</span></div>
       </div>
       <div class="summary-total-row">
         <span>Total Amount</span>
-        <span>₹{{ total }}</span>
+        <span id="cart-grand-total">₹{{ grand_total }}</span>
       </div>
       {% if total < 999 %}
-      <div class="free-ship-note">
+      <div class="free-ship-note" id="free-shipping-banner">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-        Add ₹{{ 999|add:"-0" }} worth more for FREE delivery
+        Add <span class="free-diff">₹{{ 999|subtract:total }}</span> worth more for FREE delivery
       </div>
       {% endif %}
       <a href="{% url 'checkout' %}" class="btn btn-accent btn-full btn-lg" id="cart-checkout-btn" style="margin-top:20px">
@@ -95,4 +95,153 @@
   </div>
   {% endif %}
 </div>
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    function getCSRFToken() {
+        return document.cookie.split('; ')
+            .find(row => row.startsWith('csrftoken'))
+            ?.split('=')[1];
+    }
+
+    function updateCartUI(itemId, data) {
+        const cartBadge = document.getElementById("cart-badge");
+        if (cartBadge) {
+            cartBadge.innerText = data.cart_count;
+            cartBadge.style.display = data.cart_count > 0 ? "inline-flex" : "none";
+        }
+
+        if (data.status === "removed") {
+            const row = document.getElementById(`cart-row-${itemId}`);
+            if (row) {
+                row.remove();
+            }
+            showToast("Item removed from cart 🛒", "success");
+        } else if (data.status === "success") {
+            const qtyNum = document.getElementById(`qty-num-${itemId}`);
+            if (qtyNum) {
+                qtyNum.innerText = data.quantity;
+            }
+            const unitQty = document.getElementById(`unit-qty-${itemId}`);
+            if (unitQty) {
+                unitQty.innerText = data.quantity;
+            }
+            const itemTotal = document.getElementById(`item-total-${itemId}`);
+            if (itemTotal) {
+                itemTotal.innerText = `₹${data.item_total_price.toFixed(2)}`;
+            }
+        } else if (data.status === "error") {
+            showToast(data.message || "Error updating quantity", "error");
+            return;
+        }
+
+        if (data.cart_count === 0) {
+            window.location.reload();
+            return;
+        }
+
+        const subtotalEl = document.getElementById("cart-subtotal");
+        if (subtotalEl) {
+            subtotalEl.innerText = `₹${data.subtotal.toFixed(2)}`;
+        }
+        
+        const countTextEl = document.querySelector(".page-hero p");
+        if (countTextEl) {
+            const rows = document.querySelectorAll(".cart-row");
+            countTextEl.innerText = `${rows.length} item${rows.length !== 1 ? 's' : ''} in your bag`;
+        }
+
+        const deliveryEl = document.getElementById("cart-delivery");
+        if (deliveryEl) {
+            if (data.delivery === 0) {
+                deliveryEl.innerText = "FREE";
+                deliveryEl.className = "free-label";
+            } else {
+                deliveryEl.innerText = `₹${data.delivery.toFixed(2)}`;
+                deliveryEl.className = "";
+            }
+        }
+
+        const grandTotalEl = document.getElementById("cart-grand-total");
+        if (grandTotalEl) {
+            grandTotalEl.innerText = `₹${data.grand_total.toFixed(2)}`;
+        }
+
+        const freeShipBanner = document.getElementById("free-shipping-banner");
+        if (freeShipBanner) {
+            if (data.subtotal >= 999) {
+                freeShipBanner.remove();
+            } else {
+                const diff = 999 - data.subtotal;
+                freeShipBanner.querySelector(".free-diff").innerText = `₹${diff.toFixed(2)}`;
+            }
+        } else if (data.subtotal < 999 && data.cart_count > 0) {
+            const diff = 999 - data.subtotal;
+            const summaryBox = document.querySelector(".cart-summary-box");
+            if (summaryBox) {
+                const newBanner = document.createElement("div");
+                newBanner.id = "free-shipping-banner";
+                newBanner.className = "free-ship-note";
+                newBanner.innerHTML = `
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    Add <span class="free-diff">₹${diff.toFixed(2)}</span> worth more for FREE delivery
+                `;
+                const checkoutBtn = document.getElementById("cart-checkout-btn");
+                summaryBox.insertBefore(newBanner, checkoutBtn);
+            }
+        }
+    }
+
+    document.querySelectorAll(".ajax-qty-inc, .ajax-qty-dec").forEach(btn => {
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            const itemId = this.dataset.itemId;
+            const action = this.classList.contains("ajax-qty-inc") ? "increase" : "decrease";
+            
+            const formData = new FormData();
+            formData.append("action", action);
+
+            fetch(`/cart/api/update/${itemId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCSRFToken(),
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                updateCartUI(itemId, data);
+            })
+            .catch(err => {
+                console.error("Cart update error:", err);
+                showToast("Error updating cart", "error");
+            });
+        });
+    });
+
+    document.querySelectorAll(".ajax-cart-remove").forEach(btn => {
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            const itemId = this.dataset.itemId;
+
+            fetch(`/cart/api/remove/${itemId}/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCSRFToken(),
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                updateCartUI(itemId, data);
+            })
+            .catch(err => {
+                console.error("Cart remove error:", err);
+                showToast("Error removing item", "error");
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
 {% endblock %}
