@@ -13,3 +13,10 @@ def currency(value):
         return f"₹{val:,.2f}"
     except Exception:
         return value
+
+@register.filter(name='subtract')
+def subtract(value, arg):
+    try:
+        return Decimal(str(value)) - Decimal(str(arg))
+    except Exception:
+        return value
