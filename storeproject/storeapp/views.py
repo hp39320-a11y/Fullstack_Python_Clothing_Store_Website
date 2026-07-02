@@ -130,6 +130,7 @@ def subcategory_view(request, id):
 
 @login_required
 def add_to_cart(request, product_id):
+    # AJAX endpoint to add products to cart with custom size and quantity selection
     if request.method == "POST":
         product = get_object_or_404(Products, id=product_id)
         
