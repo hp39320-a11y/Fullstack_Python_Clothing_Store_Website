@@ -32,6 +32,7 @@ urlpatterns = [
     path('cart/remove/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('cart/increase/<int:product_id>/', views.cart_increase_quantity, name='cart_increase_quantity'),
     path('cart/decrease/<int:product_id>/', views.cart_decrease_quantity, name='cart_decrease_quantity'),
+    # New endpoints supporting asynchronous (AJAX) cart actions
     path('cart/api/update/<int:item_id>/', views.api_cart_update, name='api_cart_update'),
     path('cart/api/remove/<int:item_id>/', views.api_cart_remove, name='api_cart_remove'),
 
