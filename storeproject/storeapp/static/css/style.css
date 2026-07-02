@@ -968,3 +968,57 @@ footer {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* =========================================
+   SEARCH AUTOCOMPLETE SUGGESTIONS
+   ========================================= */
+.search-suggestions-box {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border) !important;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: var(--t);
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background: var(--bg-secondary);
+}
+
+.suggestion-img {
+  width: 36px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border-light);
+}
+
+.suggestion-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.suggestion-name {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-price {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 2px;
+}
